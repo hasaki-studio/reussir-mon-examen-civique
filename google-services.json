@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "197403724516",
+    "project_id": "nat-sheet",
+    "storage_bucket": "nat-sheet.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:197403724516:android:baecb9dcabce8566c27af1",
+        "android_client_info": {
+          "package_name": "com.hasakistudio.reussirmonentretien"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDx2wU40nHWbxZArVCz86PW-hAlXZ6BltE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

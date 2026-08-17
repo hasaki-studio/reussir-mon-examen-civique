@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "Naturalisation",
+    "slug": "hasaki-studio",
+    "version": "1.0.0",
+    "scheme": "reussirmonentretien",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hasakistudio.reussirmonentretien",
+      "buildNumber": "6",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.hasakistudio.reussirmonentretien",
+      "googleServicesFile": "./google-services.json",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFFFF",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 6,
+      "permissions": [
+        "com.google.android.gms.permission.AD_ID"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "./plugins/withCompatMetadonneesKotlin",
+      "./plugins/withSignatureRelease",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
+      "./plugins/withFirebaseStaticFrameworks",
+      "@react-native-firebase/app",
+      "@react-native-firebase/app-check",
+      "expo-router",
+      "expo-status-bar",
+      "@react-native-firebase/analytics",
+      "expo-tracking-transparency",
+      "expo-iap",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "iosAppId": "ca-app-pub-3940256099942544~1458002511",
+          "userTrackingUsageDescription": "Votre autorisation permet d'afficher des publicités adaptées, qui financent l'accès gratuit aux fiches de révision.",
+          "skAdNetworkItems": [
+            "cstr6suwn9.skadnetwork"
+          ]
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "153e81c9-7bb9-47c5-8e27-05f8b0b41045"
+      }
+    },
+    "owner": "hasakistudio"
+  }
+}
