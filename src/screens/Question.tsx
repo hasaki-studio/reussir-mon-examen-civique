@@ -18,8 +18,11 @@ interface Props {
   reponse: ReponseDonnee | undefined;
   masquerPublicite: boolean;
   estDerniere: boolean;
+  /** Faux en examen, et sur la première question. */
+  peutPrecedent: boolean;
   onRepondre: (choisi: number) => void;
   onSuivant: () => void;
+  onPrecedent: () => void;
   onQuitter: () => void;
 }
 
@@ -32,8 +35,10 @@ export default function EcranQuestion({
   reponse,
   masquerPublicite,
   estDerniere,
+  peutPrecedent,
   onRepondre,
   onSuivant,
+  onPrecedent,
   onQuitter,
 }: Props) {
   const couleur = couleurTheme(question.theme);
@@ -105,17 +110,26 @@ export default function EcranQuestion({
           )}
         </View>
 
-        {repondu && (
-          <TouchableOpacity style={styles.boutonSuivant} onPress={onSuivant}>
-            <Text style={styles.boutonSuivantTexte}>
-              {estDerniere
-                ? correctionImmediate
-                  ? 'Terminer la session'
-                  : 'Voir mon résultat'
-                : 'Question suivante →'}
-            </Text>
-          </TouchableOpacity>
-        )}
+        <View style={styles.navigation}>
+          {peutPrecedent && (
+            <TouchableOpacity style={styles.boutonPrecedent} onPress={onPrecedent}>
+              <Text style={styles.boutonPrecedentTexte}>← Précédente</Text>
+            </TouchableOpacity>
+          )}
+          {/* Avancer suppose d'avoir répondu : sans cela, en examen, on pourrait sauter les
+              questions difficiles et obtenir un score qui ne veut rien dire. */}
+          {repondu && (
+            <TouchableOpacity style={styles.boutonSuivant} onPress={onSuivant}>
+              <Text style={styles.boutonSuivantTexte}>
+                {estDerniere
+                  ? correctionImmediate
+                    ? 'Terminer la session'
+                    : 'Voir mon résultat'
+                  : 'Question suivante →'}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </ScrollView>
       <BandeauPublicitaire masque={masquerPublicite} />
     </View>
@@ -145,6 +159,9 @@ const styles = StyleSheet.create({
   choixTexteIncorrect: { color: couleurs.rouge, fontFamily: polices.texteSemiGras },
   explication: { backgroundColor: 'rgba(28,43,73,0.04)', borderLeftWidth: 3, borderLeftColor: couleurs.or, borderRadius: 8, padding: 14, marginTop: 8 },
   explicationTexte: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 20 },
-  boutonSuivant: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 15, alignItems: 'center', marginTop: 18 },
+  navigation: { flexDirection: 'row', gap: 10, marginTop: 18 },
+  boutonPrecedent: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 15, paddingHorizontal: 18, alignItems: 'center', backgroundColor: couleurs.papier },
+  boutonPrecedentTexte: { fontSize: 13.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
+  boutonSuivant: { flex: 1, backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 15, alignItems: 'center' },
   boutonSuivantTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, letterSpacing: 0.3 },
 });

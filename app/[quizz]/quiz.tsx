@@ -23,7 +23,14 @@ export default function QuizRoute() {
   const router = useRouter();
   const quizz = useQuizzRoute();
   const { etat } = useEtat();
-  const { sessionQuiz, repondre, questionSuivante, terminerSession, reponseCourante } = useQuiz();
+  const {
+    sessionQuiz,
+    repondre,
+    questionSuivante,
+    questionPrecedente,
+    terminerSession,
+    reponseCourante,
+  } = useQuiz();
 
   const question = sessionQuiz?.liste[sessionQuiz.index];
   const enExamen = sessionQuiz?.mode === 'examen';
@@ -78,8 +85,10 @@ export default function QuizRoute() {
       reponse={reponseCourante}
       masquerPublicite={etat.premium}
       estDerniere={sessionQuiz.index === sessionQuiz.liste.length - 1}
+      peutPrecedent={!enExamen && sessionQuiz.index > 0}
       onRepondre={onRepondre}
       onSuivant={questionSuivante}
+      onPrecedent={questionPrecedente}
       onQuitter={() => {
         terminerSession();
         router.back();

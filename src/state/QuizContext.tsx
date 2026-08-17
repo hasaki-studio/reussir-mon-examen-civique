@@ -36,6 +36,8 @@ type QuizContextValue = {
   /** Enregistre la réponse à la question courante. Sans effet si elle a déjà été répondue. */
   repondre: (choisi: number) => void;
   questionSuivante: () => void;
+  /** Revient à la question précédente. Sans effet en examen. */
+  questionPrecedente: () => void;
   terminerSession: () => void;
   /** Réponse déjà donnée à la question courante, ou undefined. */
   reponseCourante: ReponseDonnee | undefined;
@@ -84,11 +86,19 @@ export function QuizProvider({ children }: { children: ReactNode }) {
   const questionSuivante = useCallback(() => {
     setSessionQuiz((s) => {
       if (!s) return s;
-      // Aucun retour en arrière n'est proposé, dans aucun mode : en examen parce que le format
-      // réel ne le permet pas, en révision par cohérence — une correction déjà affichée ne se
-      // révise pas une seconde fois.
       if (s.index >= s.liste.length - 1) return { ...s, terminee: true };
       return { ...s, index: s.index + 1 };
+    });
+  }, []);
+
+  const questionPrecedente = useCallback(() => {
+    setSessionQuiz((s) => {
+      if (!s) return s;
+      // Interdit en examen : le format réel ne permet pas de revenir sur une réponse, et le
+      // récapitulatif de fin joue déjà ce rôle. En révision, relire la question précédente et
+      // son explication est au contraire le geste attendu.
+      if (s.mode === 'examen' || s.index === 0) return s;
+      return { ...s, index: s.index - 1 };
     });
   }, []);
 
@@ -112,11 +122,21 @@ export function QuizProvider({ children }: { children: ReactNode }) {
       demarrerSession,
       repondre,
       questionSuivante,
+      questionPrecedente,
       terminerSession,
       reponseCourante,
       score,
     }),
-    [sessionQuiz, demarrerSession, repondre, questionSuivante, terminerSession, reponseCourante, score]
+    [
+      sessionQuiz,
+      demarrerSession,
+      repondre,
+      questionSuivante,
+      questionPrecedente,
+      terminerSession,
+      reponseCourante,
+      score,
+    ]
   );
 
   return <QuizContext.Provider value={value}>{children}</QuizContext.Provider>;

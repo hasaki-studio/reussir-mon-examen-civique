@@ -20,6 +20,13 @@ export interface Question {
   theme: string;
   palier: number;
   palierProvisoire?: boolean;
+  /**
+   * Rattache entre elles les variantes d'une même question : même énoncé, propositions plus
+   * exigeantes selon le titre visé. Les variantes ont des `applicable` disjoints, donc une
+   * seule concerne un quizz donné ; ce champ sert à les retrouver dans la feuille, et de
+   * garde-fou au tirage.
+   */
+  groupe?: string;
   /** Quizz auxquels la question s'applique — l'essentiel du contenu vaut pour les trois. */
   applicable: Quizz[];
   actif: boolean;

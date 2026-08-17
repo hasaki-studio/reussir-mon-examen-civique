@@ -21,6 +21,7 @@ Un onglet, une ligne par question, une ligne d'en-tête.
 | `palier` | nombre | **oui** | Niveau de déblocage, à partir de 1. |
 | `applicable` | texte | **oui** | Quizz concernés, séparés par des virgules : `csp`, `cr`, `nat`. Ex. `csp,cr,nat`. |
 | `actif` | booléen | **oui** | `FAUX` retire la question de l'application sans la supprimer de la feuille. C'est le bon geste pour une question douteuse. |
+| `groupe` | texte | non | Rattache les variantes d'un même énoncé (voir la section suivante). Vide pour une question sans variante. |
 | `palierProvisoire` | booléen | non | Marque un palier attribué à la louche, à rééquilibrer quand le corpus aura grandi. Sans effet dans l'application. |
 | `source` | texte | non | D'où vient l'information (Livret du citoyen, service-public.fr, article de loi). Ne part pas dans Firestore, mais rend une relecture possible un an plus tard. |
 
@@ -73,6 +74,35 @@ L'essentiel des questions vaut pour les trois titres. Une seule ligne les sert t
 
 ---
 
+## Les variantes : même énoncé, propositions plus dures
+
+Le besoin est réel : une question peut valoir pour les trois titres, mais mériter des propositions plus subtiles pour la carte de résident et la naturalisation, dont les exigences sont plus élevées.
+
+**Une ligne par variante, reliées par la colonne `groupe`.**
+
+| id | groupe | question | choix1 | choix2 | choix3 | choix4 | bonne | applicable |
+|---|---|---|---|---|---|---|---|---|
+| `civ-inst-014-a` | `inst-014` | Combien de temps dure le mandat du Président ? | 4 ans | 5 ans | 7 ans | 10 ans | 2 | `csp` |
+| `civ-inst-014-b` | `inst-014` | Combien de temps dure le mandat du Président ? | 5 ans, deux fois consécutives au plus | 5 ans, sans limite | 7 ans, renouvelable une fois | 5 ans, une seule fois | 1 | `cr,nat` |
+
+Pourquoi des lignes plutôt que des colonnes supplémentaires (`choix1_dur`, `choix2_dur`…) :
+
+- **La difficulté ne se limite pas aux propositions.** Une variante exigeante appelle souvent une explication plus fournie, parfois un palier différent. Des colonnes « dures » supposeraient de dupliquer aussi `explication` et `palier`, et la feuille deviendrait illisible.
+- **Le code n'a rien à apprendre.** Chaque ligne est une question ordinaire, filtrée par `applicable` comme les autres. Aucune logique de variante à écrire, donc aucune à déboguer.
+- **On peut avoir deux variantes ou cinq** sans retoucher la structure.
+
+### Les trois règles à tenir
+
+1. **Les `applicable` d'un même groupe sont disjoints.** `csp` d'un côté, `cr,nat` de l'autre : jamais un quizz dans deux variantes du même groupe. C'est ce qui garantit qu'un utilisateur ne voit qu'une version.
+2. **`groupe` n'est pas un identifiant de document.** Chaque variante garde son `id` propre, stable et unique.
+3. **L'énoncé reste identique entre variantes.** Si l'énoncé change, ce sont deux questions différentes, pas deux variantes — et le groupe n'a plus lieu d'être.
+
+Filet de sécurité côté application : les tirages (examen blanc et révision) ne retiennent **qu'une variante par groupe**, même si la règle 1 a été enfreinte dans la feuille. Un doublon éditorial fait donc perdre une question à l'examen, il ne pose pas deux fois la même en donnant la réponse au passage.
+
+Une formule de contrôle dans la feuille vaut mieux que ce filet : pour chaque groupe, vérifier qu'aucun quizz n'apparaît deux fois.
+
+---
+
 ## Équilibrage
 
 - Viser **8 à 12 questions par palier**, comme l'application sœur.
@@ -89,6 +119,7 @@ L'essentiel des questions vaut pour les trois titres. Une seule ligne les sert t
 | `bonne` (1-4) | `bonne: number` (0-3) — **la conversion se fait ici, une seule fois** |
 | `applicable` (`csp,cr,nat`) | `applicable: string[]`, découpé sur la virgule, espaces retirés |
 | `actif` (`VRAI`/`FAUX`) | `actif: boolean` |
+| `groupe` vide | champ omis, et non chaîne vide — une chaîne vide regrouperait toutes les questions sans variante |
 | `palier`, `bonne` | nombres, jamais des chaînes — l'application compare `palier <= palier utilisateur` |
 
 La collection cible est **`questions_civique`**, dans le projet Firebase propre à Civique.
