@@ -61,7 +61,7 @@ export default function MentionsLegales({
 
       <Text style={styles.sectionTitre}>Mesure d'usage (Analytics)</Text>
       <Text style={styles.paragraphe}>
-        Avec votre consentement, des données d'usage anonymes et agrégées sont collectées à des fins statistiques (ex. : nombre de fiches consultées, écrans visités) via Firebase Analytics, sans partage avec des régies publicitaires tierces à des fins de ciblage. Ce recueil est soumis à votre consentement, que vous pouvez donner ou retirer à tout moment ci-dessous.
+        Avec votre consentement, des données d'usage anonymes et agrégées sont collectées à des fins statistiques (ex. : nombre de questions consultées, écrans visités) via Firebase Analytics, sans partage avec des régies publicitaires tierces à des fins de ciblage. Ce recueil est soumis à votre consentement, que vous pouvez donner ou retirer à tout moment ci-dessous.
       </Text>
 
       <View style={styles.consentEncart}>

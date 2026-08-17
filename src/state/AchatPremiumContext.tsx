@@ -11,7 +11,6 @@ import React, {
 } from 'react';
 import { useIAP, ErrorCode, type Purchase, type PurchaseError } from 'expo-iap';
 import { useEtat } from './EtatContext';
-import { useQuestionsContext } from './QuestionsContext';
 import { SKU_PREMIUM, PRIX_PREMIUM_INDICATIF } from '../config/monetisation';
 import { logAchatPremiumAnnule } from '../services/analytics';
 
@@ -44,7 +43,6 @@ function estAnnulationUtilisateur(error: unknown): boolean {
 
 export function AchatPremiumProvider({ children }: { children: ReactNode }) {
   const { etat, activerPremium } = useEtat();
-  const { palierMax } = useQuestionsContext();
   const [achatEnCours, setAchatEnCours] = useState(false);
   const [restaurationEnCours, setRestaurationEnCours] = useState(false);
   const [erreurAchat, setErreurAchat] = useState<string | null>(null);
@@ -65,7 +63,10 @@ export function AchatPremiumProvider({ children }: { children: ReactNode }) {
       setAchatEnCours(false);
       setErreurAchat(null);
       if (estAchatPremiumValide(purchase)) {
-        activerPremium(palierMax, purchase.transactionId ?? purchase.purchaseToken ?? purchase.id);
+        activerPremium(
+          purchase.transactionId ?? purchase.purchaseToken ?? purchase.id,
+          ...montantFacture()
+        );
       }
       try {
         // Non consommable : il s'agit d'un déblocage définitif, pas d'un jeton réutilisable.
@@ -85,6 +86,20 @@ export function AchatPremiumProvider({ children }: { children: ReactNode }) {
       logAchatPremiumAnnule();
     },
   });
+
+  // Montant réellement facturé, lorsque le store l'a communiqué. `displayPrice` est localisé
+  // et inexploitable en nombre ; le prix numérique et la devise ne sont pas garantis par
+  // toutes les plateformes, d'où la vérification de type plutôt qu'une conversion forcée :
+  // pour la mesure du chiffre d'affaires, mieux vaut aucun montant qu'un montant inventé.
+  const montantFacture = useCallback((): [number | undefined, string | undefined] => {
+    const produit = products.find((p) => p.id === SKU_PREMIUM) as
+      | { price?: unknown; currency?: unknown }
+      | undefined;
+    return [
+      typeof produit?.price === 'number' ? produit.price : undefined,
+      typeof produit?.currency === 'string' ? produit.currency : undefined,
+    ];
+  }, [products]);
 
   // Récupère le prix réel (localisé) dès que la connexion au store est établie.
   useEffect(() => {
@@ -108,9 +123,12 @@ export function AchatPremiumProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const achatPremium = availablePurchases.find(estAchatPremiumValide);
     if (achatPremium) {
-      activerPremium(palierMax, achatPremium.transactionId ?? achatPremium.purchaseToken ?? achatPremium.id);
+      activerPremium(
+        achatPremium.transactionId ?? achatPremium.purchaseToken ?? achatPremium.id,
+        ...montantFacture()
+      );
     }
-  }, [availablePurchases, activerPremium, palierMax]);
+  }, [availablePurchases, activerPremium, montantFacture]);
 
   const lancerAchatPremium = useCallback(() => {
     if (etat.premium || achatEnCours) return;

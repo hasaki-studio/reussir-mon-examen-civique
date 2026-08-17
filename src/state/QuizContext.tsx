@@ -1,36 +1,45 @@
-import React, { createContext, useCallback, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useState, ReactNode } from 'react';
 import { Question } from '../../services/firebase';
+import type { Quizz } from '../config/quizz';
 
-type ModeSession = 'aleatoire' | 'theme' | 'palier';
+export type ModeSession = 'revision' | 'theme' | 'palier' | 'examen';
 
-type SessionQuiz = {
+export type ReponseDonnee = {
+  questionId: string;
+  /** Index choisi dans `Question.choix`. */
+  choisi: number;
+  correct: boolean;
+};
+
+export type SessionQuiz = {
+  quizz: Quizz;
   mode: ModeSession;
+  /** Thème ou palier d'origine, pour l'étiquetage et le retour à la bonne liste. */
   valeur?: string | number;
   liste: Question[];
   index: number;
-  naviguationLibre: boolean;
-  ensembleFiltre: Question[];
+  reponses: ReponseDonnee[];
+  /** Passe à true quand la dernière question a été dépassée. */
+  terminee: boolean;
 };
-
-export function melanger<T>(tableau: T[]): T[] {
-  const copie = [...tableau];
-  for (let i = copie.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copie[i], copie[j]] = [copie[j], copie[i]];
-  }
-  return copie;
-}
 
 type QuizContextValue = {
   sessionQuiz: SessionQuiz | null;
-  demarrerSession: (
-    mode: ModeSession,
-    valeur: string | number | undefined,
-    liste: Question[],
-    naviguationLibre: boolean,
-    ensembleFiltre: Question[]
-  ) => void;
-  changerQuestion: (delta: number) => void;
+  demarrerSession: (params: {
+    quizz: Quizz;
+    mode: ModeSession;
+    valeur?: string | number;
+    liste: Question[];
+    /** Index de départ, pour une session ouverte depuis une question précise de la liste. */
+    depart?: number;
+  }) => void;
+  /** Enregistre la réponse à la question courante. Sans effet si elle a déjà été répondue. */
+  repondre: (choisi: number) => void;
+  questionSuivante: () => void;
+  terminerSession: () => void;
+  /** Réponse déjà donnée à la question courante, ou undefined. */
+  reponseCourante: ReponseDonnee | undefined;
+  score: number;
 };
 
 const QuizContext = createContext<QuizContextValue | undefined>(undefined);
@@ -38,40 +47,79 @@ const QuizContext = createContext<QuizContextValue | undefined>(undefined);
 export function QuizProvider({ children }: { children: ReactNode }) {
   const [sessionQuiz, setSessionQuiz] = useState<SessionQuiz | null>(null);
 
-  const demarrerSession = useCallback(
-    (
-      mode: ModeSession,
-      valeur: string | number | undefined,
-      liste: Question[],
-      naviguationLibre: boolean,
-      ensembleFiltre: Question[]
-    ) => {
-      setSessionQuiz({ mode, valeur, liste, index: 0, naviguationLibre, ensembleFiltre });
+  const demarrerSession = useCallback<QuizContextValue['demarrerSession']>(
+    ({ quizz, mode, valeur, liste, depart = 0 }) => {
+      setSessionQuiz({
+        quizz,
+        mode,
+        valeur,
+        liste,
+        index: Math.min(Math.max(0, depart), Math.max(0, liste.length - 1)),
+        reponses: [],
+        terminee: false,
+      });
     },
     []
   );
 
-  const changerQuestion = useCallback((delta: number) => {
+  const repondre = useCallback((choisi: number) => {
     setSessionQuiz((s) => {
       if (!s) return s;
-      if (delta === 1 && s.naviguationLibre) {
-        const liste = s.liste.slice(0, s.index + 1);
-        const courante = liste[s.index];
-        let pool = s.ensembleFiltre.filter((q) => q.id !== courante.id);
-        if (pool.length === 0) pool = s.ensembleFiltre;
-        const suivante = pool[Math.floor(Math.random() * pool.length)];
-        liste.push(suivante);
-        return { ...s, liste, index: s.index + 1 };
-      }
-      return { ...s, index: s.index + delta };
+      const question = s.liste[s.index];
+      if (!question) return s;
+      // Une question déjà répondue ne se rejoue pas : les propositions sont désactivées à
+      // l'écran, mais un double appui peut arriver avant le rendu suivant, et compterait deux
+      // fois dans le score d'un examen.
+      if (s.reponses.some((r) => r.questionId === question.id)) return s;
+      return {
+        ...s,
+        reponses: [
+          ...s.reponses,
+          { questionId: question.id, choisi, correct: choisi === question.bonne },
+        ],
+      };
     });
   }, []);
 
-  return (
-    <QuizContext.Provider value={{ sessionQuiz, demarrerSession, changerQuestion }}>
-      {children}
-    </QuizContext.Provider>
+  const questionSuivante = useCallback(() => {
+    setSessionQuiz((s) => {
+      if (!s) return s;
+      // Aucun retour en arrière n'est proposé, dans aucun mode : en examen parce que le format
+      // réel ne le permet pas, en révision par cohérence — une correction déjà affichée ne se
+      // révise pas une seconde fois.
+      if (s.index >= s.liste.length - 1) return { ...s, terminee: true };
+      return { ...s, index: s.index + 1 };
+    });
+  }, []);
+
+  const terminerSession = useCallback(() => setSessionQuiz(null), []);
+
+  const reponseCourante = useMemo(() => {
+    if (!sessionQuiz) return undefined;
+    const question = sessionQuiz.liste[sessionQuiz.index];
+    if (!question) return undefined;
+    return sessionQuiz.reponses.find((r) => r.questionId === question.id);
+  }, [sessionQuiz]);
+
+  const score = useMemo(
+    () => (sessionQuiz ? sessionQuiz.reponses.filter((r) => r.correct).length : 0),
+    [sessionQuiz]
   );
+
+  const value = useMemo(
+    () => ({
+      sessionQuiz,
+      demarrerSession,
+      repondre,
+      questionSuivante,
+      terminerSession,
+      reponseCourante,
+      score,
+    }),
+    [sessionQuiz, demarrerSession, repondre, questionSuivante, terminerSession, reponseCourante, score]
+  );
+
+  return <QuizContext.Provider value={value}>{children}</QuizContext.Provider>;
 }
 
 export function useQuiz(): QuizContextValue {

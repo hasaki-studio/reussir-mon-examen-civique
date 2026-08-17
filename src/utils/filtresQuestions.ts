@@ -1,5 +1,14 @@
 // src/utils/filtresQuestions.ts
 import { Question } from '../../services/firebase';
+import type { Quizz } from '../config/quizz';
+
+/**
+ * Restreint le corpus commun aux questions valables pour un quizz donné.
+ * S'applique en premier : tous les autres filtres travaillent sur son résultat.
+ */
+export function questionsDuQuizz(questions: Question[], quizz: Quizz): Question[] {
+  return questions.filter((q) => q.applicable.includes(quizz));
+}
 
 export function questionsDebloquees(
   questions: Question[],

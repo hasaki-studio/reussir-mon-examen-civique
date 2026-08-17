@@ -10,9 +10,9 @@ export default function EnTeteMarque() {
         <View style={[styles.bande, { backgroundColor: '#F6F3EC', borderWidth: 1, borderColor: '#DEDACD' }]} />
         <View style={[styles.bande, { backgroundColor: '#A62B2B' }]} />
       </View>
-      <Text style={styles.eyebrow}>Préparation à l'entretien</Text>
-      <Text style={styles.titre}>Réussir mon entretien</Text>
-      <Text style={styles.sousTitre}>Réviser par fiches, à votre rythme</Text>
+      <Text style={styles.eyebrow}>Préparation à l'examen civique</Text>
+      <Text style={styles.titre}>Réussir mon test civique</Text>
+      <Text style={styles.sousTitre}>Réviser à votre rythme, puis se tester</Text>
     </View>
   );
 }

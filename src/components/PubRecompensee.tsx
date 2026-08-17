@@ -28,7 +28,7 @@ interface Props {
  * publicité ne serait qu'un délai contournable, et ne rapporterait rien.
  *
  * Conséquence assumée : sans réseau, ou si l'utilisateur a refusé la publicité au parcours de
- * consentement, le déblocage est impossible. Les fiches déjà débloquées restent consultables
+ * consentement, le déblocage est impossible. Les questions déjà débloquées restent consultables
  * hors ligne, mais en débloquer de nouvelles suppose une connexion.
  */
 export default function PubRecompensee(props: Props) {

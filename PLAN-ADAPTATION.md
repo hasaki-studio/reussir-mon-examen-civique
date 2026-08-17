@@ -1,8 +1,32 @@
 # Plan d'adaptation — de Nat vers Civique
 
-*Établi le 17/08/2026, après lecture intégrale du duplicata (≈ 3 500 lignes hors `components/ui`). Aucun code n'a encore été modifié : ce document est le chantier, pas son résultat.*
+*Établi le 17/08/2026, après lecture intégrale du duplicata (≈ 3 500 lignes hors `components/ui`). Mis à jour le même jour : les lots 0, 1 et 2 sont écrits.*
 
-Le dépôt est une copie de « Mon Entretien : Naturalisation » à son état soumis au Play Store. Six lots, dans cet ordre. Le lot 0 est le seul à traiter en urgence.
+Le dépôt était une copie de « Mon Entretien : Naturalisation » à son état soumis au Play Store. Six lots, dans cet ordre.
+
+---
+
+## État d'avancement
+
+| Lot | État |
+|---|---|
+| 0 — Couper les liens avec Nat | **Fait côté dépôt.** Les actions en console restent à faire (§ 0.3) |
+| 1 — Modèle QCM et trois quizz | **Fait** |
+| 2 — Mode examen blanc | **Fait** |
+| 3 — Contenu | À faire — chemin critique. Format proposé : [`docs/feuille-questions.md`](docs/feuille-questions.md) |
+| 4 — Légal et conformité | À faire |
+| 5 — Code croisé, iOS | Reporté |
+
+⚠️ **Le dépôt ne compile pas tant que le projet Firebase de Civique n'existe pas**, et c'est voulu : `google-services.json` déclare encore le package de Nat, qui ne correspond plus à `com.hasakistudio.examencivique`. Le build Android s'arrête donc sur « No matching client found for package name » au lieu d'écrire silencieusement dans le projet de l'application sœur. Déposer les deux fichiers du nouveau projet lève le blocage.
+
+### Écarts assumés par rapport au plan initial
+
+Quatre décisions prises à l'écriture, à partir du prototype HTML du 17/08 :
+
+1. **Le paramètre Analytics s'appelle `quizz`, pas `appli`.** Les deux applications ayant des projets Firebase distincts, la dimension utile est le parcours, pas le produit.
+2. **Le seuil de réussite est proportionnel, pas fixe.** Tant que le corpus compte moins de 40 questions, l'examen en pose moins ; un seuil figé à 32 rendrait l'échec mathématiquement certain. La proportion officielle (80 %) est conservée, arrondie au supérieur.
+3. **Aucun retour en arrière sur l'écran de question, dans aucun mode** — conformément au commentaire explicite du prototype.
+4. **« Réviser en détail » se débloque au dernier palier** par défaut (`SEUIL_DEBLOCAGE_THEME_DEFAUT = 99`, borné au palier maximal), comme le prototype. Le levier Remote Config reste disponible pour ouvrir plus tôt.
 
 ---
 

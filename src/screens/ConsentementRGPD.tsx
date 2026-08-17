@@ -23,7 +23,7 @@ export default function ConsentementRGPD({ onAccepter, onRefuser }: Props) {
 
       <Text style={styles.paragraphe}>
         Pour améliorer l'application, nous aimerions mesurer son utilisation de façon
-        anonyme (par exemple : le nombre de fiches consultées, les écrans visités).
+        anonyme (par exemple : le nombre de questions consultées, les écrans visités).
         Ces statistiques sont recueillies via Firebase Analytics (Google).
       </Text>
 

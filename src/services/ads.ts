@@ -43,7 +43,9 @@ export const UNITE_PUB_BANNIERE = TestIds.ADAPTIVE_BANNER;
 // TODO(monétisation) : créer trois unités distinctes dans la console AdMob et les reporter ici.
 export const UNITE_PUB_PALIER = TestIds.REWARDED;
 export const UNITE_PUB_SESSION_DETAIL = TestIds.REWARDED;
-export const UNITE_PUB_BONUS = TestIds.REWARDED;
+// Examen blanc au-delà du quota du jour : le levier propre à Civique, celui dont on attend le
+// plus. Son unité doit rester distincte pour qu'AdMob dise ce qu'il rapporte réellement.
+export const UNITE_PUB_EXAMEN = TestIds.REWARDED;
 
 // Format le plus compact du catalogue standard : 320×50 dp, hauteur fixe et prévisible.
 // Choisi pour préserver la place laissée à la question, qui est le contenu de l'écran.
@@ -89,7 +91,7 @@ export async function initialiserPublicites(): Promise<boolean> {
     }
   }
   try {
-    // Plafonne le contenu servi : une app de préparation à un entretien de naturalisation n'a
+    // Plafonne le contenu servi : une app de préparation à un examen civique n'a
     // rien à gagner à afficher des annonces pour adultes. « T » (teen) écarte les catégories
     // les plus crues tout en conservant l'essentiel de l'inventaire — « MA » les autoriserait,
     // « PG » serait plus strict mais réduirait davantage le remplissage.

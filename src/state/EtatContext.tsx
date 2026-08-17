@@ -10,58 +10,116 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { STORAGE_KEY_ETAT } from '../config/monetisation';
+import { QUIZZ_ORDRE, type Quizz } from '../config/quizz';
 import { logPalierDebloque, logPurchase } from '../services/analytics';
 
 type CompteurJour = { date: string | null; count: number };
 
-type EtatUtilisateur = {
-  palier: number;
-  premium: boolean;
-  bonusDebloques: string[]; // Question.id est un string (id du doc Firestore)
-  sessionsDetailAujourdhui: CompteurJour;
-  bonusGratuitsAujourdhui: CompteurJour;
+export type ResultatExamen = {
+  /** Jour de passage, au format AAAA-MM-JJ. */
+  date: string;
+  score: number;
+  total: number;
+  seuil: number;
+  reussi: boolean;
 };
 
-const ETAT_PAR_DEFAUT: EtatUtilisateur = {
-  palier: 1,
-  premium: false,
-  bonusDebloques: [],
-  sessionsDetailAujourdhui: { date: null, count: 0 },
-  bonusGratuitsAujourdhui: { date: null, count: 0 },
+type EtatQuizz = {
+  palier: number;
+  sessionsDetailAujourdhui: CompteurJour;
+  examensAujourdhui: CompteurJour;
+  derniersResultats: ResultatExamen[];
 };
+
+type EtatUtilisateur = {
+  // Premium à la racine, et non par quizz : un achat débloque les trois, Google Play
+  // rattachant de toute façon un achat à une application et non à un contenu.
+  premium: boolean;
+  parQuizz: Record<Quizz, EtatQuizz>;
+};
+
+// Au-delà, l'historique n'apprend plus rien à l'utilisateur et grossit indéfiniment un objet
+// relu à chaque démarrage.
+const MAX_RESULTATS_CONSERVES = 10;
+
+function etatQuizzParDefaut(): EtatQuizz {
+  return {
+    palier: 1,
+    sessionsDetailAujourdhui: { date: null, count: 0 },
+    examensAujourdhui: { date: null, count: 0 },
+    derniersResultats: [],
+  };
+}
+
+function etatParDefaut(): EtatUtilisateur {
+  return {
+    premium: false,
+    parQuizz: QUIZZ_ORDRE.reduce(
+      (acc, quizz) => ({ ...acc, [quizz]: etatQuizzParDefaut() }),
+      {} as Record<Quizz, EtatQuizz>
+    ),
+  };
+}
+
+/**
+ * Reconstruit un état complet à partir de ce qui a été relu du stockage.
+ *
+ * Une fusion superficielle (`{ ...defaut, ...relu }`) suffisait quand l'état était plat ; elle
+ * ne suffit plus : elle accepterait un `parQuizz` incomplet — un quizz ajouté depuis, un objet
+ * tronqué par une écriture interrompue — et l'application planterait plus tard, à la première
+ * lecture d'une propriété absente. On reconstruit donc quizz par quizz.
+ */
+function fusionner(brut: unknown): EtatUtilisateur {
+  const defaut = etatParDefaut();
+  if (typeof brut !== 'object' || brut === null) return defaut;
+  const relu = brut as Partial<EtatUtilisateur>;
+  const parQuizzRelu = (relu.parQuizz ?? {}) as Partial<Record<Quizz, Partial<EtatQuizz>>>;
+
+  return {
+    premium: relu.premium === true,
+    parQuizz: QUIZZ_ORDRE.reduce((acc, quizz) => {
+      acc[quizz] = { ...etatQuizzParDefaut(), ...(parQuizzRelu[quizz] ?? {}) };
+      return acc;
+    }, {} as Record<Quizz, EtatQuizz>),
+  };
+}
 
 function cleDuJour(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** Compteur du jour, remis à zéro dès que la date stockée n'est plus celle d'aujourd'hui. */
+function compteurDuJour(compteur: CompteurJour): number {
+  return compteur.date === cleDuJour() ? compteur.count : 0;
+}
+
 type EtatContextValue = {
   etat: EtatUtilisateur;
   pretChargement: boolean;
-  debloquerPalierSuivant: (palierMax: number, seuilDeblocageTheme: number) => void;
-  activerPremium: (palierMax: number, transactionId: string) => void;
-  debloquerBonus: (questionId: string) => void;
-  sessionDetailGratuiteDisponible: (sessionsGratuitesParJour: number) => boolean;
-  sessionsDetailRestantes: (sessionsGratuitesParJour: number) => number;
-  consommerSessionDetailGratuite: () => void;
-  bonusGratuitDisponible: (bonusGratuitsParJour: number) => boolean;
-  bonusGratuitsRestants: (bonusGratuitsParJour: number) => number;
-  consommerBonusGratuit: () => void;
+  etatQuizz: (quizz: Quizz) => EtatQuizz;
+  debloquerPalierSuivant: (quizz: Quizz, palierMax: number, seuilDeblocageTheme: number) => void;
+  activerPremium: (transactionId: string, valeurAchat?: number, devise?: string) => void;
+  sessionDetailGratuiteDisponible: (quizz: Quizz, sessionsGratuitesParJour: number) => boolean;
+  sessionsDetailRestantes: (quizz: Quizz, sessionsGratuitesParJour: number) => number;
+  consommerSessionDetailGratuite: (quizz: Quizz) => void;
+  examenGratuitDisponible: (quizz: Quizz, examensGratuitsParJour: number) => boolean;
+  examensRestants: (quizz: Quizz, examensGratuitsParJour: number) => number;
+  consommerExamenGratuit: (quizz: Quizz) => void;
+  enregistrerResultatExamen: (quizz: Quizz, resultat: ResultatExamen) => void;
   reinitialiser: () => void;
 };
 
 const EtatContext = createContext<EtatContextValue | undefined>(undefined);
 
 export function EtatProvider({ children }: { children: ReactNode }) {
-  const [etat, setEtat] = useState<EtatUtilisateur>(ETAT_PAR_DEFAUT);
+  const [etat, setEtat] = useState<EtatUtilisateur>(etatParDefaut);
   const [pretChargement, setPretChargement] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
         const brut = await AsyncStorage.getItem(STORAGE_KEY_ETAT);
-        if (brut) {
-          setEtat({ ...ETAT_PAR_DEFAUT, ...JSON.parse(brut) });
-        }
+        if (brut) setEtat(fusionner(JSON.parse(brut)));
       } catch (e) {
         console.warn('Lecture etat impossible, valeurs par défaut utilisées', e);
       } finally {
@@ -72,136 +130,153 @@ export function EtatProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!pretChargement) return;
-    AsyncStorage.setItem(STORAGE_KEY_ETAT, JSON.stringify(etat)).catch((e:unknown) =>
+    AsyncStorage.setItem(STORAGE_KEY_ETAT, JSON.stringify(etat)).catch((e: unknown) =>
       console.warn('Sauvegarde etat impossible', e)
     );
   }, [etat, pretChargement]);
 
-  const debloquerPalierSuivant = useCallback((palierMax: number, seuilDeblocageTheme: number) => {
-    setEtat((e) => {
-      if (e.palier >= palierMax) return e;
-      const palierApres = e.palier + 1;
-      logPalierDebloque({
-        palierAvant: e.palier,
-        palierApres,
-        palierMax,
-        themeDebloque: e.palier < seuilDeblocageTheme && palierApres >= seuilDeblocageTheme,
+  /** Applique une transformation à un seul quizz, en laissant les deux autres intacts. */
+  const majQuizz = useCallback((quizz: Quizz, transformer: (e: EtatQuizz) => EtatQuizz) => {
+    setEtat((precedent) => ({
+      ...precedent,
+      parQuizz: { ...precedent.parQuizz, [quizz]: transformer(precedent.parQuizz[quizz]) },
+    }));
+  }, []);
+
+  const etatQuizz = useCallback((quizz: Quizz) => etat.parQuizz[quizz], [etat.parQuizz]);
+
+  const debloquerPalierSuivant = useCallback(
+    (quizz: Quizz, palierMax: number, seuilDeblocageTheme: number) => {
+      majQuizz(quizz, (e) => {
+        if (e.palier >= palierMax) return e;
+        const palierApres = e.palier + 1;
+        const seuil = Math.min(seuilDeblocageTheme, palierMax);
+        logPalierDebloque({
+          palierAvant: e.palier,
+          palierApres,
+          palierMax,
+          themeDebloque: e.palier < seuil && palierApres >= seuil,
+        });
+        return { ...e, palier: palierApres };
       });
-      return { ...e, palier: palierApres };
-    });
-  }, []);
+    },
+    [majQuizz]
+  );
 
-  const activerPremium = useCallback((palierMax: number, transactionId: string) => {
-    setEtat((e) => {
-      // Idempotent : un achat restauré ou rejoué (relance app, listener dupliqué) ne doit
-      // ni re-logger un événement d'achat ni re-déclencher d'effet de bord.
-      if (e.premium) return e;
-      logPurchase({ transactionId });
-      return { ...e, premium: true, palier: palierMax };
-    });
-  }, []);
-
-  const debloquerBonus = useCallback((questionId: string) => {
-    setEtat((e) =>
-      e.bonusDebloques.includes(questionId)
-        ? e
-        : { ...e, bonusDebloques: [...e.bonusDebloques, questionId] }
-    );
-  }, []);
+  const activerPremium = useCallback(
+    (transactionId: string, valeurAchat?: number, devise?: string) => {
+      setEtat((precedent) => {
+        // Idempotent : un achat restauré ou rejoué (relance app, listener dupliqué) ne doit
+        // ni re-logger un événement d'achat ni re-déclencher d'effet de bord.
+        if (precedent.premium) return precedent;
+        logPurchase({ transactionId, valeur: valeurAchat, devise });
+        return { ...precedent, premium: true };
+      });
+      // Le palier n'est volontairement pas poussé au maximum : « premium ⇒ tout est
+      // accessible » est appliqué par les filtres, à la lecture. Écrire le palier maximal dans
+      // l'état le figerait au contenu du jour de l'achat, et le contenu ajouté ensuite
+      // apparaîtrait verrouillé à quelqu'un qui a précisément payé pour ne plus l'être.
+    },
+    []
+  );
 
   const sessionDetailGratuiteDisponible = useCallback(
-    (sessionsGratuitesParJour: number): boolean => {
+    (quizz: Quizz, sessionsGratuitesParJour: number): boolean => {
       if (etat.premium) return true;
-      const { date, count } = etat.sessionsDetailAujourdhui;
-      if (date !== cleDuJour()) return true;
-      return count < sessionsGratuitesParJour;
+      return compteurDuJour(etat.parQuizz[quizz].sessionsDetailAujourdhui) < sessionsGratuitesParJour;
     },
-    [etat.premium, etat.sessionsDetailAujourdhui]
+    [etat.premium, etat.parQuizz]
   );
 
   const sessionsDetailRestantes = useCallback(
-    (sessionsGratuitesParJour: number): number => {
-      const { date, count } = etat.sessionsDetailAujourdhui;
-      const compteurActuel = date === cleDuJour() ? count : 0;
-      return Math.max(0, sessionsGratuitesParJour - compteurActuel);
-    },
-    [etat.sessionsDetailAujourdhui]
+    (quizz: Quizz, sessionsGratuitesParJour: number): number =>
+      Math.max(
+        0,
+        sessionsGratuitesParJour - compteurDuJour(etat.parQuizz[quizz].sessionsDetailAujourdhui)
+      ),
+    [etat.parQuizz]
   );
 
-  const consommerSessionDetailGratuite = useCallback(() => {
-    setEtat((e) => {
-      const aujourdhui = cleDuJour();
-      const compteurActuel =
-        e.sessionsDetailAujourdhui.date === aujourdhui ? e.sessionsDetailAujourdhui.count : 0;
-      return {
+  const consommerSessionDetailGratuite = useCallback(
+    (quizz: Quizz) => {
+      majQuizz(quizz, (e) => ({
         ...e,
-        sessionsDetailAujourdhui: { date: aujourdhui, count: compteurActuel + 1 },
-      };
-    });
-  }, []);
+        sessionsDetailAujourdhui: {
+          date: cleDuJour(),
+          count: compteurDuJour(e.sessionsDetailAujourdhui) + 1,
+        },
+      }));
+    },
+    [majQuizz]
+  );
 
-  const bonusGratuitDisponible = useCallback(
-    (bonusGratuitsParJour: number): boolean => {
+  const examenGratuitDisponible = useCallback(
+    (quizz: Quizz, examensGratuitsParJour: number): boolean => {
       if (etat.premium) return true;
-      const { date, count } = etat.bonusGratuitsAujourdhui;
-      const compteurActuel = date === cleDuJour() ? count : 0;
-      return compteurActuel < bonusGratuitsParJour;
+      return compteurDuJour(etat.parQuizz[quizz].examensAujourdhui) < examensGratuitsParJour;
     },
-    [etat.premium, etat.bonusGratuitsAujourdhui]
+    [etat.premium, etat.parQuizz]
   );
 
-  const bonusGratuitsRestants = useCallback(
-    (bonusGratuitsParJour: number): number => {
-      const { date, count } = etat.bonusGratuitsAujourdhui;
-      const compteurActuel = date === cleDuJour() ? count : 0;
-      return Math.max(0, bonusGratuitsParJour - compteurActuel);
-    },
-    [etat.bonusGratuitsAujourdhui]
+  const examensRestants = useCallback(
+    (quizz: Quizz, examensGratuitsParJour: number): number =>
+      Math.max(0, examensGratuitsParJour - compteurDuJour(etat.parQuizz[quizz].examensAujourdhui)),
+    [etat.parQuizz]
   );
 
-  const consommerBonusGratuit = useCallback(() => {
-    setEtat((e) => {
-      const aujourdhui = cleDuJour();
-      const compteurActuel =
-        e.bonusGratuitsAujourdhui.date === aujourdhui ? e.bonusGratuitsAujourdhui.count : 0;
-      return {
+  const consommerExamenGratuit = useCallback(
+    (quizz: Quizz) => {
+      majQuizz(quizz, (e) => ({
         ...e,
-        bonusGratuitsAujourdhui: { date: aujourdhui, count: compteurActuel + 1 },
-      };
-    });
-  }, []);
+        examensAujourdhui: { date: cleDuJour(), count: compteurDuJour(e.examensAujourdhui) + 1 },
+      }));
+    },
+    [majQuizz]
+  );
+
+  const enregistrerResultatExamen = useCallback(
+    (quizz: Quizz, resultat: ResultatExamen) => {
+      majQuizz(quizz, (e) => ({
+        ...e,
+        derniersResultats: [resultat, ...e.derniersResultats].slice(0, MAX_RESULTATS_CONSERVES),
+      }));
+    },
+    [majQuizz]
+  );
 
   const reinitialiser = useCallback(() => {
-    setEtat(ETAT_PAR_DEFAUT);
+    setEtat(etatParDefaut());
   }, []);
 
   const value = useMemo(
     () => ({
       etat,
       pretChargement,
+      etatQuizz,
       debloquerPalierSuivant,
       activerPremium,
-      debloquerBonus,
       sessionDetailGratuiteDisponible,
       sessionsDetailRestantes,
       consommerSessionDetailGratuite,
-      bonusGratuitDisponible,
-      bonusGratuitsRestants,
-      consommerBonusGratuit,
+      examenGratuitDisponible,
+      examensRestants,
+      consommerExamenGratuit,
+      enregistrerResultatExamen,
       reinitialiser,
     }),
     [
       etat,
       pretChargement,
+      etatQuizz,
       debloquerPalierSuivant,
       activerPremium,
-      debloquerBonus,
       sessionDetailGratuiteDisponible,
       sessionsDetailRestantes,
       consommerSessionDetailGratuite,
-      bonusGratuitDisponible,
-      bonusGratuitsRestants,
-      consommerBonusGratuit,
+      examenGratuitDisponible,
+      examensRestants,
+      consommerExamenGratuit,
+      enregistrerResultatExamen,
       reinitialiser,
     ]
   );

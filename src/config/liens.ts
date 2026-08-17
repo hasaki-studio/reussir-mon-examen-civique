@@ -11,14 +11,17 @@
 
 import { Linking } from 'react-native';
 
-export const URL_CONFIDENTIALITE = 'https://naturalisation.hasakistudio.fr/confidentialite';
-export const URL_MENTIONS_LEGALES = 'https://naturalisation.hasakistudio.fr/mentions-legales';
+export const URL_CONFIDENTIALITE = 'https://civique.hasakistudio.fr/confidentialite';
+export const URL_MENTIONS_LEGALES = 'https://civique.hasakistudio.fr/mentions-legales';
 
 // ⚠️ Liens officiels de l'écran Conseils. Les adresses des sites publics changent
 // régulièrement : un lien mort vers le Livret du citoyen décrédibilise plus qu'il n'aide.
 // Toute entrée laissée vide rend sa carte non cliquable et masque sa flèche — l'app promet
 // alors moins, plutôt que de promettre à faux.
 // TODO(contenu) : vérifier chaque adresse sur l'appareil avant chaque distribution.
+// TODO(contenu) : ces liens ne couvrent que la naturalisation, héritage de l'application
+// sœur. Civique prépare aussi à la carte de séjour pluriannuelle et à la carte de résident :
+// ajouter les fiches service-public.fr correspondantes.
 export const URL_LIVRET_CITOYEN =
   'https://www.immigration.interieur.gouv.fr/documentation/guides-textes-et-brochures/livret-du-citoyen.html';
 export const URL_DGEF = 'https://www.immigration.interieur.gouv.fr/';

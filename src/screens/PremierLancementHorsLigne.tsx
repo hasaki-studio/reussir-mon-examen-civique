@@ -9,7 +9,7 @@ export default function PremierLancementHorsLigne() {
       <EnTeteMarque />
       <View style={styles.message}>
         <Text style={styles.messageTexte}>
-          Aucune connexion internet détectée. Le tout premier chargement des fiches nécessite une
+          Aucune connexion internet détectée. Le tout premier chargement des questions nécessite une
           connexion — reconnectez-vous, le chargement reprendra automatiquement.
         </Text>
       </View>

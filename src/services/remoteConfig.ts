@@ -3,28 +3,40 @@ import { getRemoteConfig, fetchAndActivate, getNumber, getString } from '@react-
 import {
   SEUIL_DEBLOCAGE_THEME_DEFAUT,
   SESSIONS_DETAIL_GRATUITES_PAR_JOUR,
-  BONUS_GRATUITS_PAR_JOUR_DEFAUT,
   MESSAGE_ACCUEIL_DEFAUT,
 } from '../config/monetisation';
+import {
+  EXAMEN_NB_QUESTIONS_DEFAUT,
+  EXAMEN_SEUIL_BONNES_DEFAUT,
+  EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
+} from '../config/examen';
 
 const CLE_SEUIL_DEBLOCAGE_THEME = 'seuil_deblocage_theme_defaut';
 const CLE_SESSIONS_DETAIL_GRATUITES = 'sessions_detail_gratuites_par_jour';
-const CLE_BONUS_GRATUITS = 'bonus_gratuits_par_jour';
 const CLE_MESSAGE_ACCUEIL = 'message_accueil';
+// Format de l'examen : pilotable à distance parce que les deux nombres officiels n'ont pas
+// été vérifiés et sont pourtant présentés à l'utilisateur comme tels.
+const CLE_EXAMEN_NB_QUESTIONS = 'examen_nb_questions';
+const CLE_EXAMEN_SEUIL_REUSSITE = 'examen_seuil_reussite';
+const CLE_EXAMENS_GRATUITS = 'examens_gratuits_par_jour';
 
 export type ValeursRemoteConfig = {
   seuilDeblocageTheme: number;
   sessionsDetailGratuitesParJour: number;
-  bonusGratuitsParJour: number;
   // Vide = on retombe sur le message d'origine (disponibilité hors connexion).
   messageAccueil: string;
+  examenNbQuestions: number;
+  examenSeuilReussite: number;
+  examensGratuitsParJour: number;
 };
 
 export const VALEURS_PAR_DEFAUT: ValeursRemoteConfig = {
   seuilDeblocageTheme: SEUIL_DEBLOCAGE_THEME_DEFAUT,
   sessionsDetailGratuitesParJour: SESSIONS_DETAIL_GRATUITES_PAR_JOUR,
-  bonusGratuitsParJour: BONUS_GRATUITS_PAR_JOUR_DEFAUT,
   messageAccueil: MESSAGE_ACCUEIL_DEFAUT,
+  examenNbQuestions: EXAMEN_NB_QUESTIONS_DEFAUT,
+  examenSeuilReussite: EXAMEN_SEUIL_BONNES_DEFAUT,
+  examensGratuitsParJour: EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
 };
 
 export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
@@ -32,8 +44,10 @@ export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
   remoteConfig.defaultConfig = {
     [CLE_SEUIL_DEBLOCAGE_THEME]: SEUIL_DEBLOCAGE_THEME_DEFAUT,
     [CLE_SESSIONS_DETAIL_GRATUITES]: SESSIONS_DETAIL_GRATUITES_PAR_JOUR,
-    [CLE_BONUS_GRATUITS]: BONUS_GRATUITS_PAR_JOUR_DEFAUT,
     [CLE_MESSAGE_ACCUEIL]: MESSAGE_ACCUEIL_DEFAUT,
+    [CLE_EXAMEN_NB_QUESTIONS]: EXAMEN_NB_QUESTIONS_DEFAUT,
+    [CLE_EXAMEN_SEUIL_REUSSITE]: EXAMEN_SEUIL_BONNES_DEFAUT,
+    [CLE_EXAMENS_GRATUITS]: EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
   };
   // En dev, on veut voir l'effet d'un changement de valeur immédiatement (pas d'attente 12h).
   remoteConfig.settings = {
@@ -48,10 +62,18 @@ export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
   }
 
   // getNumber renvoie le default déjà appliqué ci-dessus même si le fetch a échoué.
+  const examenNbQuestions = getNumber(remoteConfig, CLE_EXAMEN_NB_QUESTIONS);
+  const examenSeuilReussite = getNumber(remoteConfig, CLE_EXAMEN_SEUIL_REUSSITE);
+
   return {
     seuilDeblocageTheme: getNumber(remoteConfig, CLE_SEUIL_DEBLOCAGE_THEME),
     sessionsDetailGratuitesParJour: getNumber(remoteConfig, CLE_SESSIONS_DETAIL_GRATUITES),
-    bonusGratuitsParJour: getNumber(remoteConfig, CLE_BONUS_GRATUITS),
     messageAccueil: getString(remoteConfig, CLE_MESSAGE_ACCUEIL),
+    examenNbQuestions,
+    // Une saisie incohérente dans la console — seuil supérieur au nombre de questions — rendrait
+    // l'examen mathématiquement impossible à réussir, chez tous les utilisateurs, sans erreur
+    // visible. La console n'ayant aucune validation croisée, on la fait ici.
+    examenSeuilReussite: Math.min(examenSeuilReussite, examenNbQuestions),
+    examensGratuitsParJour: getNumber(remoteConfig, CLE_EXAMENS_GRATUITS),
   };
 }

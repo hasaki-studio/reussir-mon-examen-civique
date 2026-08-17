@@ -23,7 +23,8 @@ export default function ListeQuestions({ titre, questions, onSelectionnerQuestio
       </TouchableOpacity>
       <Text style={styles.titre}>{titre}</Text>
       <Text style={styles.compteur}>
-        {questions.length} fiche{questions.length > 1 ? 's' : ''} débloquée{questions.length > 1 ? 's' : ''}
+        {questions.length} question{questions.length > 1 ? 's' : ''} débloquée
+        {questions.length > 1 ? 's' : ''}
       </Text>
 
       <View style={styles.liste}>
