@@ -139,7 +139,7 @@ Disparaissent : `reponse`, `bonus`, `typeQuestion`. `infoBulle` peut rester (ind
 
 **Une seule écoute pour les trois quizz.** `where('actif', '==', true)` uniquement, filtrage par quizz côté appareil. Filtrer côté serveur obligerait à relancer une écoute — et à repayer des lectures — à chaque changement de quizz, alors que le corpus entier tient sans peine en mémoire et que l'utilisateur navigue entre les quizz.
 
-⚠️ **Identifiants de documents stables et explicites**, imposés par le script de synchronisation (type `civ-institutions-014-nat`). Nat a appris la leçon dans l'autre sens : une synchronisation qui supprime puis recrée les documents change les identifiants, et tout ce qui référence une question par son identifiant devient invisible. Même sans le mécanisme de bonus, les identifiants servent à l'analytique, à l'historique des examens et à toute reprise de question ratée.
+⚠️ **Identifiants de documents stables**, imposés par le script de synchronisation (type `nat-0031` : préfixe de quizz et incrément, rien de modifiable). Nat a appris la leçon dans l'autre sens : une synchronisation qui supprime puis recrée les documents change les identifiants, et tout ce qui référence une question par son identifiant devient invisible. Même sans le mécanisme de bonus, les identifiants servent à l'analytique, à l'historique des examens et à toute reprise de question ratée.
 
 ### 1.2 — L'état
 
@@ -231,7 +231,8 @@ Répartition par thème proportionnelle au corpus, pour ressembler au format ré
 
 Le chemin critique, indépendant de tout le reste.
 
-- Feuille Google, une ligne par question, colonnes `id`, `quizz`, `question`, `choix1..4`, `bonne`, `explication`, `theme`, `palier`, `actif`. Format détaillé : [`docs/feuille-questions.md`](docs/feuille-questions.md).
+- Feuille Google, une ligne par question, colonnes `id`, `quizz`, `type`, `question`, `choix1..4`, `bonne`, `explication`, `theme`, `palier`, `actif`, plus `veille` et `source` non synchronisées. Format détaillé : [`docs/feuille-questions.md`](docs/feuille-questions.md).
+- **12 mises en situation par examen blanc**, pour chacun des trois quizz : c'est la partie la plus coûteuse à écrire, et celle à ne pas laisser pour la fin.
 - Script Apps Script vers `questions_civique`, en **écriture sur documents existants** (`set` avec identifiant explicite), jamais en supprimer-recréer.
 - **La feuille est la seule source de vérité** : toute correction faite dans la console Firebase est écrasée à la synchronisation suivante, sans avertissement.
 - Viser 8 à 12 questions par palier, comme Nat.

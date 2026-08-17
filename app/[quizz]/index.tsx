@@ -28,8 +28,13 @@ export default function AccueilQuizzRoute() {
   const [pubPalierEnAttente, setPubPalierEnAttente] = useState(false);
   const { etat, etatQuizz, debloquerPalierSuivant, examensRestants } = useEtat();
   const { demarrerSession } = useQuiz();
-  const { seuilDeblocageTheme, examensGratuitsParJour, examenNbQuestions, examenSeuilReussite } =
-    useRemoteConfig();
+  const {
+    seuilDeblocageTheme,
+    examensGratuitsParJour,
+    examenNbQuestions,
+    examenNbSituations,
+    examenSeuilReussite,
+  } = useRemoteConfig();
   const { questions, palierMax } = useQuestionsQuizz(quizz ?? 'csp');
   const examen = useExamenBlanc(quizz ?? 'csp');
 
@@ -46,7 +51,15 @@ export default function AccueilQuizzRoute() {
   // route porte un quizz inconnu (lien profond forgé ou périmé).
   if (!quizz) return <Redirect href="/" />;
 
+  // Ce qui sera réellement posé, corpus incomplet compris : annoncer 40 questions dont 12 mises
+  // en situation quand la feuille n'en contient pas encore autant décrédibiliserait l'écran dès
+  // le premier examen.
   const nbQuestionsExamen = Math.min(examenNbQuestions, questions.length);
+  const nbSituationsExamen = Math.min(
+    examenNbSituations,
+    nbQuestionsExamen,
+    questions.filter((q) => q.type === 'situation').length
+  );
 
   const lancerRevision = () => {
     if (debloquees.length === 0) return;
@@ -72,6 +85,7 @@ export default function AccueilQuizzRoute() {
         detailDebloque={detailDebloque}
         seuilTheme={seuilTheme}
         nbQuestionsExamen={nbQuestionsExamen}
+        nbSituationsExamen={nbSituationsExamen}
         seuilExamen={seuilReussite(nbQuestionsExamen, examenNbQuestions, examenSeuilReussite)}
         examensRestants={examensRestants(quizz, examensGratuitsParJour)}
         onRevision={lancerRevision}

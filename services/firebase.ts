@@ -8,9 +8,17 @@ import { estQuizz, type Quizz } from '../src/config/quizz';
  * l'explication de la bonne réponse est le contenu pédagogique lui-même, elle est donc
  * toujours affichée et jamais conditionnée à une publicité.
  */
+/**
+ * L'examen réel mêle deux formes : des questions de connaissance et des mises en situation.
+ * Le mode examen blanc respecte leur proportion officielle, ce qui suppose de savoir à quelle
+ * forme appartient chaque question.
+ */
+export type TypeQuestion = 'simple' | 'situation';
+
 export interface Question {
   /** Identifiant du document Firestore — stable et explicite, imposé par la synchronisation. */
   id: string;
+  type: TypeQuestion;
   question: string;
   /** Propositions, dans l'ordre d'affichage. */
   choix: string[];
@@ -69,10 +77,18 @@ export function ecouterQuestions(
   return onSnapshot(
     q,
     (snapshot) => {
-      const questions = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      })) as Question[];
+      const questions = snapshot.docs.map((doc) => {
+        const donnees = doc.data();
+        return {
+          ...donnees,
+          id: doc.id,
+          // Une cellule `type` oubliée ne doit pas faire disparaître une question par ailleurs
+          // correcte : elle compte alors comme question simple, la forme la plus courante. Le
+          // seul effet est un examen blanc dont la proportion de mises en situation s'écarte
+          // un peu de la règle — préférable à un trou dans le contenu.
+          type: donnees.type === 'situation' ? 'situation' : 'simple',
+        };
+      }) as Question[];
       const affichables = questions.filter(estQuestionAffichable);
       if (affichables.length !== questions.length) {
         console.warn(

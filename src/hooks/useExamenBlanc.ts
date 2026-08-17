@@ -22,14 +22,17 @@ import type { Quizz } from '../config/quizz';
 export function useExamenBlanc(quizz: Quizz, naviguer: 'push' | 'replace' = 'push') {
   const router = useRouter();
   const { etat, examenGratuitDisponible, examensRestants, consommerExamenGratuit } = useEtat();
-  const { examensGratuitsParJour, examenNbQuestions } = useRemoteConfig();
+  const { examensGratuitsParJour, examenNbQuestions, examenNbSituations } = useRemoteConfig();
   const { questions } = useQuestionsQuizz(quizz);
   const { demarrerSession } = useQuiz();
   const [pubEnAttente, setPubEnAttente] = useState(false);
 
   const demarrer = useCallback(
     (gratuit: boolean) => {
-      const liste = tirerExamen(questions, examenNbQuestions);
+      const liste = tirerExamen(questions, {
+        nbQuestions: examenNbQuestions,
+        nbSituations: examenNbSituations,
+      });
       // Corpus vide : rien à tirer. Se produit avant la première synchronisation du contenu.
       if (liste.length === 0) return;
       logExamenDemarre({
@@ -45,6 +48,7 @@ export function useExamenBlanc(quizz: Quizz, naviguer: 'push' | 'replace' = 'pus
     [
       questions,
       examenNbQuestions,
+      examenNbSituations,
       examensRestants,
       quizz,
       examensGratuitsParJour,

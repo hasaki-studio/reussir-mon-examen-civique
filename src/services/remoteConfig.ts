@@ -7,6 +7,7 @@ import {
 } from '../config/monetisation';
 import {
   EXAMEN_NB_QUESTIONS_DEFAUT,
+  EXAMEN_NB_SITUATIONS_DEFAUT,
   EXAMEN_SEUIL_BONNES_DEFAUT,
   EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
 } from '../config/examen';
@@ -17,6 +18,7 @@ const CLE_MESSAGE_ACCUEIL = 'message_accueil';
 // Format de l'examen : pilotable à distance parce que les deux nombres officiels n'ont pas
 // été vérifiés et sont pourtant présentés à l'utilisateur comme tels.
 const CLE_EXAMEN_NB_QUESTIONS = 'examen_nb_questions';
+const CLE_EXAMEN_NB_SITUATIONS = 'examen_nb_situations';
 const CLE_EXAMEN_SEUIL_REUSSITE = 'examen_seuil_reussite';
 const CLE_EXAMENS_GRATUITS = 'examens_gratuits_par_jour';
 
@@ -26,6 +28,7 @@ export type ValeursRemoteConfig = {
   // Vide = on retombe sur le message d'origine (disponibilité hors connexion).
   messageAccueil: string;
   examenNbQuestions: number;
+  examenNbSituations: number;
   examenSeuilReussite: number;
   examensGratuitsParJour: number;
 };
@@ -35,6 +38,7 @@ export const VALEURS_PAR_DEFAUT: ValeursRemoteConfig = {
   sessionsDetailGratuitesParJour: SESSIONS_DETAIL_GRATUITES_PAR_JOUR,
   messageAccueil: MESSAGE_ACCUEIL_DEFAUT,
   examenNbQuestions: EXAMEN_NB_QUESTIONS_DEFAUT,
+  examenNbSituations: EXAMEN_NB_SITUATIONS_DEFAUT,
   examenSeuilReussite: EXAMEN_SEUIL_BONNES_DEFAUT,
   examensGratuitsParJour: EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
 };
@@ -46,6 +50,7 @@ export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
     [CLE_SESSIONS_DETAIL_GRATUITES]: SESSIONS_DETAIL_GRATUITES_PAR_JOUR,
     [CLE_MESSAGE_ACCUEIL]: MESSAGE_ACCUEIL_DEFAUT,
     [CLE_EXAMEN_NB_QUESTIONS]: EXAMEN_NB_QUESTIONS_DEFAUT,
+    [CLE_EXAMEN_NB_SITUATIONS]: EXAMEN_NB_SITUATIONS_DEFAUT,
     [CLE_EXAMEN_SEUIL_REUSSITE]: EXAMEN_SEUIL_BONNES_DEFAUT,
     [CLE_EXAMENS_GRATUITS]: EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
   };
@@ -70,9 +75,11 @@ export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
     sessionsDetailGratuitesParJour: getNumber(remoteConfig, CLE_SESSIONS_DETAIL_GRATUITES),
     messageAccueil: getString(remoteConfig, CLE_MESSAGE_ACCUEIL),
     examenNbQuestions,
-    // Une saisie incohérente dans la console — seuil supérieur au nombre de questions — rendrait
-    // l'examen mathématiquement impossible à réussir, chez tous les utilisateurs, sans erreur
-    // visible. La console n'ayant aucune validation croisée, on la fait ici.
+    // Mêmes garde-fous, même raison : la console Remote Config ne valide aucune cohérence entre
+    // clés. Un seuil supérieur au nombre de questions rendrait l'examen impossible à réussir
+    // chez tous les utilisateurs, et un nombre de mises en situation supérieur au total ne
+    // laisserait aucune place aux questions simples — dans les deux cas sans erreur visible.
+    examenNbSituations: Math.min(getNumber(remoteConfig, CLE_EXAMEN_NB_SITUATIONS), examenNbQuestions),
     examenSeuilReussite: Math.min(examenSeuilReussite, examenNbQuestions),
     examensGratuitsParJour: getNumber(remoteConfig, CLE_EXAMENS_GRATUITS),
   };

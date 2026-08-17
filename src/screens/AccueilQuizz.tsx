@@ -14,6 +14,7 @@ interface Props {
   detailDebloque: boolean;
   seuilTheme: number;
   nbQuestionsExamen: number;
+  nbSituationsExamen: number;
   seuilExamen: number;
   examensRestants: number;
   onRevision: () => void;
@@ -41,6 +42,7 @@ export default function AccueilQuizz({
   detailDebloque,
   seuilTheme,
   nbQuestionsExamen,
+  nbSituationsExamen,
   seuilExamen,
   examensRestants,
   onRevision,
@@ -88,7 +90,9 @@ export default function AccueilQuizz({
       <TouchableOpacity style={styles.carteExamen} onPress={onExamen}>
         <Text style={styles.carteExamenTitre}>Examen blanc</Text>
         <Text style={styles.carteExamenSous}>
-          {nbQuestionsExamen} questions, conditions réelles, {seuilExamen} bonnes réponses exigées
+          {nbQuestionsExamen} questions dont {nbSituationsExamen} mise
+          {nbSituationsExamen > 1 ? 's' : ''} en situation, conditions réelles, {seuilExamen}{' '}
+          bonnes réponses exigées
         </Text>
         <Text style={styles.carteExamenQuota}>
           {premium
