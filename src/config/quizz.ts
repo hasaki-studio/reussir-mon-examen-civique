@@ -1,12 +1,13 @@
 // src/config/quizz.ts
 //
-// Les trois parcours de l'application. Un seul corpus de questions les alimente : chaque
-// question porte la liste des quizz auxquels elle s'applique (`applicable`), ce qui évite de
-// tripler le contenu commun — l'essentiel des questions vaut pour les trois titres.
+// Les trois parcours de l'application. Le contenu est cloisonné : chaque question appartient à
+// un seul quizz (`Question.quizz`). Un énoncé valable pour plusieurs titres est dupliqué dans
+// la feuille, avec des propositions ajustées à ce que chaque titre exige — c'est le jeu de
+// propositions, plus que l'énoncé, qui porte la difficulté.
 //
-// ⚠️ Les clés `csp` / `cr` / `nat` sont écrites telles quelles dans la colonne `applicable`
-// de la feuille de contenu, dans l'état stocké sur l'appareil et dans les événements
-// Analytics. Les renommer invaliderait les trois à la fois.
+// ⚠️ Les clés `csp` / `cr` / `nat` sont écrites telles quelles dans la colonne `quizz` de la
+// feuille de contenu, dans l'état stocké sur l'appareil et dans les événements Analytics.
+// Les renommer invaliderait les trois à la fois.
 
 import { couleurs } from '../theme/colors';
 

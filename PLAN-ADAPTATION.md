@@ -21,12 +21,13 @@ Le dépôt était une copie de « Mon Entretien : Naturalisation » à son état
 
 ### Écarts assumés par rapport au plan initial
 
-Quatre décisions prises à l'écriture, à partir du prototype HTML du 17/08 :
+Cinq décisions prises à l'écriture, à partir du prototype HTML du 17/08 et des retours qui ont suivi :
 
 1. **Le paramètre Analytics s'appelle `quizz`, pas `appli`.** Les deux applications ayant des projets Firebase distincts, la dimension utile est le parcours, pas le produit.
 2. **Le seuil de réussite est proportionnel, pas fixe.** Tant que le corpus compte moins de 40 questions, l'examen en pose moins ; un seuil figé à 32 rendrait l'échec mathématiquement certain. La proportion officielle (80 %) est conservée, arrondie au supérieur.
-3. **Aucun retour en arrière sur l'écran de question, dans aucun mode** — conformément au commentaire explicite du prototype.
+3. **Retour en arrière autorisé en révision, interdit en examen.** L'examen réel ne permet pas de revenir sur une réponse, et le récapitulatif de fin joue déjà ce rôle ; en révision, relire la question précédente et son explication est au contraire le geste attendu. Le blocage est appliqué dans `QuizContext`, pas seulement à l'affichage.
 4. **« Réviser en détail » se débloque au dernier palier** par défaut (`SEUIL_DEBLOCAGE_THEME_DEFAUT = 99`, borné au palier maximal), comme le prototype. Le levier Remote Config reste disponible pour ouvrir plus tôt.
+5. **Une question appartient à un seul quizz**, contrairement à l'`applicable[]` partagé du prototype. Un énoncé valable pour plusieurs titres est dupliqué dans la feuille, avec ses propres propositions : c'est le jeu de propositions qui porte la difficulté propre à chaque titre. Le surcoût éditorial est assumé, et le code y gagne — plus aucune logique de partage.
 
 ---
 
@@ -36,7 +37,7 @@ L'écart entre Nat et Civique **n'est pas un renommage**, et c'est la principale
 
 Nat est une application de **fiches à réponse ouverte** : une question, un bouton « Dévoiler la réponse », un texte libre, et un « cachet » Bonus payant par publicité. Son modèle de données est `{question, reponse, bonus?, infoBulle}` et `src/screens/Question.tsx` est construit autour de ce geste.
 
-Civique est un **QCM** : une question, quatre propositions, une bonne réponse, une explication. Le modèle devient `{question, choix[], bonne, explication, applicable[]}` et l'écran de question est à réécrire, pas à ajuster. Tout ce qui touche la question elle-même suit : `filtresQuestions`, `useQuestions`, `QuizContext`, `ListeQuestions`. Et `EtatContext`, qui porte aujourd'hui un état plat, doit porter un état par quizz.
+Civique est un **QCM** : une question, quatre propositions, une bonne réponse, une explication. Le modèle devient `{question, choix[], bonne, explication, quizz}` et l'écran de question est à réécrire, pas à ajuster. Tout ce qui touche la question elle-même suit : `filtresQuestions`, `useQuestions`, `QuizContext`, `ListeQuestions`. Et `EtatContext`, qui porte aujourd'hui un état plat, doit porter un état par quizz.
 
 En revanche, tout ce qui *entoure* la question — conformité, publicité, achat, attestation, pilotage à distance, thème graphique — se reprend tel quel. C'est l'essentiel du travail difficile, et il est déjà fait.
 
@@ -129,16 +130,16 @@ export interface Question {
   theme: string;
   palier: number;
   palierProvisoire?: boolean;
-  applicable: Quizz[];
+  quizz: Quizz;             // un seul quizz par question
   actif: boolean;
 }
 ```
 
 Disparaissent : `reponse`, `bonus`, `typeQuestion`. `infoBulle` peut rester (indice avant réponse) — c'est un choix éditorial à trancher au lot 3, pas une contrainte technique.
 
-**Une seule écoute pour les trois quizz.** `where('actif', '==', true)` uniquement, filtrage par quizz côté appareil sur `applicable`. Filtrer côté serveur avec `array-contains` obligerait à relancer une écoute — et à repayer des lectures — à chaque changement de quizz, alors que le corpus entier tient sans peine en mémoire et que l'utilisateur navigue entre les quizz.
+**Une seule écoute pour les trois quizz.** `where('actif', '==', true)` uniquement, filtrage par quizz côté appareil. Filtrer côté serveur obligerait à relancer une écoute — et à repayer des lectures — à chaque changement de quizz, alors que le corpus entier tient sans peine en mémoire et que l'utilisateur navigue entre les quizz.
 
-⚠️ **Identifiants de documents stables et explicites**, imposés par le script de synchronisation (type `civ-institutions-014`). Nat a appris la leçon dans l'autre sens : une synchronisation qui supprime puis recrée les documents change les identifiants, et tout ce qui référence une question par son identifiant devient invisible. Même sans le mécanisme de bonus, les identifiants servent à l'analytique, à l'historique des examens et à toute reprise de question ratée.
+⚠️ **Identifiants de documents stables et explicites**, imposés par le script de synchronisation (type `civ-institutions-014-nat`). Nat a appris la leçon dans l'autre sens : une synchronisation qui supprime puis recrée les documents change les identifiants, et tout ce qui référence une question par son identifiant devient invisible. Même sans le mécanisme de bonus, les identifiants servent à l'analytique, à l'historique des examens et à toute reprise de question ratée.
 
 ### 1.2 — L'état
 
@@ -183,7 +184,7 @@ Les styles existants (carte, badge de thème, bandeau publicitaire en pied, navi
 
 | Fichier | Changement |
 |---|---|
-| `src/hooks/useQuestions.ts` | Prend un `quizz`, filtre sur `applicable`, recalcule `palierMax`, `themes`, `paliers` **sur le sous-ensemble** |
+| `src/hooks/useQuestions.ts` | Prend un `quizz`, filtre sur `quizz`, recalcule `palierMax`, `themes`, `paliers` **sur le sous-ensemble** |
 | `src/utils/filtresQuestions.ts` | Ajout de `questionsDuQuizz()`, en amont des filtres existants |
 | `src/state/QuizContext.tsx` | `ModeSession` gagne `'examen'` ; la session porte les réponses données et le score |
 | `app/quiz.tsx` | Toute la mécanique bonus (≈ 40 lignes, `PubRecompensee` inclus) disparaît |
@@ -211,7 +212,7 @@ Troisième clé : `examens_gratuits_par_jour` (levier de monétisation, valeur p
 
 ### 2.2 — Le tirage, et l'arbitrage qu'il impose
 
-L'examen tire N questions **dans tout le corpus applicable au quizz, tous paliers confondus** : l'examen réel ignore la progression de l'utilisateur, un examen blanc limité aux paliers débloqués mentirait sur le format et raterait sa fonction.
+L'examen tire N questions **dans tout le corpus du quizz, tous paliers confondus** : l'examen réel ignore la progression de l'utilisateur, un examen blanc limité aux paliers débloqués mentirait sur le format et raterait sa fonction.
 
 ⚠️ **Cet arbitrage a un coût qu'il faut assumer explicitement** : l'examen blanc expose donc du contenu non débloqué, y compris à un utilisateur gratuit. C'est cohérent avec les leviers retenus — le quota d'examens et le Premium jouent le rôle de barrière, pas le contenu — mais cela affaiblit le déblocage de palier par publicité. À surveiller dès les premiers retours : si les utilisateurs ne font que des examens blancs, le levier « palier » ne rapporte rien.
 
@@ -230,7 +231,7 @@ Répartition par thème proportionnelle au corpus, pour ressembler au format ré
 
 Le chemin critique, indépendant de tout le reste.
 
-- Feuille Google unique, une ligne par question, colonnes `question`, `choix1..4`, `bonne`, `explication`, `theme`, `palier`, `applicable` (liste séparée par des virgules), `actif`.
+- Feuille Google, une ligne par question, colonnes `id`, `quizz`, `question`, `choix1..4`, `bonne`, `explication`, `theme`, `palier`, `actif`. Format détaillé : [`docs/feuille-questions.md`](docs/feuille-questions.md).
 - Script Apps Script vers `questions_civique`, en **écriture sur documents existants** (`set` avec identifiant explicite), jamais en supprimer-recréer.
 - **La feuille est la seule source de vérité** : toute correction faite dans la console Firebase est écrasée à la synchronisation suivante, sans avertissement.
 - Viser 8 à 12 questions par palier, comme Nat.

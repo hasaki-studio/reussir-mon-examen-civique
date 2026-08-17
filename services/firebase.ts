@@ -1,5 +1,5 @@
 import { getFirestore, collection, query, where, onSnapshot } from '@react-native-firebase/firestore';
-import type { Quizz } from '../src/config/quizz';
+import { estQuizz, type Quizz } from '../src/config/quizz';
 
 /**
  * Une question à choix multiples, telle que synchronisée depuis la feuille de contenu.
@@ -21,14 +21,14 @@ export interface Question {
   palier: number;
   palierProvisoire?: boolean;
   /**
-   * Rattache entre elles les variantes d'une même question : même énoncé, propositions plus
-   * exigeantes selon le titre visé. Les variantes ont des `applicable` disjoints, donc une
-   * seule concerne un quizz donné ; ce champ sert à les retrouver dans la feuille, et de
-   * garde-fou au tirage.
+   * Le quizz — et un seul — auquel la question appartient.
+   *
+   * Un énoncé valable pour plusieurs titres est dupliqué dans la feuille, une ligne par quizz,
+   * avec ses propres propositions : les exigences ne sont pas les mêmes selon qu'on demande une
+   * carte de séjour pluriannuelle ou la naturalisation, et c'est le jeu de propositions qui
+   * porte cette différence. Le contenu est donc entièrement cloisonné par quizz.
    */
-  groupe?: string;
-  /** Quizz auxquels la question s'applique — l'essentiel du contenu vaut pour les trois. */
-  applicable: Quizz[];
+  quizz: Quizz;
   actif: boolean;
 }
 
@@ -36,8 +36,8 @@ export interface Question {
  * Écarte les documents qu'un écran de QCM ne saurait pas afficher.
  *
  * Le contenu vient d'une feuille de calcul remplie à la main : une ligne peut arriver sans
- * propositions, avec un index de bonne réponse hors bornes, ou sans quizz applicable. Sans ce
- * filtre, une seule cellule mal saisie planterait l'écran de question chez tous les
+ * propositions, avec un index de bonne réponse hors bornes, ou avec un quizz mal orthographié.
+ * Sans ce filtre, une seule cellule mal saisie planterait l'écran de question chez tous les
  * utilisateurs, en production, jusqu'à la synchronisation suivante. Mieux vaut une question
  * manquante qu'une application qui se ferme.
  */
@@ -50,8 +50,7 @@ function estQuestionAffichable(q: Question): boolean {
     typeof q.bonne === 'number' &&
     q.bonne >= 0 &&
     q.bonne < q.choix.length &&
-    Array.isArray(q.applicable) &&
-    q.applicable.length > 0 &&
+    estQuizz(q.quizz) &&
     typeof q.palier === 'number'
   );
 }

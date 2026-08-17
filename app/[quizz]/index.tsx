@@ -6,7 +6,7 @@ import { useRemoteConfig } from '../../src/state/RemoteConfigContext';
 import { useQuizzRoute } from '../../src/hooks/useQuizzRoute';
 import { useQuestionsQuizz } from '../../src/hooks/useQuestionsQuizz';
 import { useExamenBlanc } from '../../src/hooks/useExamenBlanc';
-import { dedupliquerParGroupe, questionsDebloquees } from '../../src/utils/filtresQuestions';
+import { questionsDebloquees } from '../../src/utils/filtresQuestions';
 import { melanger } from '../../src/utils/melanger';
 import { seuilReussite } from '../../src/config/examen';
 import { QUIZZ } from '../../src/config/quizz';
@@ -54,7 +54,7 @@ export default function AccueilQuizzRoute() {
     demarrerSession({
       quizz,
       mode: 'revision',
-      liste: melanger(dedupliquerParGroupe(debloquees)).slice(0, TAILLE_SESSION_REVISION),
+      liste: melanger(debloquees).slice(0, TAILLE_SESSION_REVISION),
     });
     router.push({ pathname: '/[quizz]/quiz', params: { quizz } });
   };

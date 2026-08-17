@@ -31,7 +31,7 @@ Les quatre points laissés ouverts par la version du 12 août sont tranchés.
 
 C'est la décision qui va à l'encontre de la recommandation du 12 août ; autant en connaître le prix pour ne pas le découvrir en route. Deux consoles à tenir, **deux jetons de debug App Check** à enregistrer, deux jeux de règles Firestore à garder cohérents, et un second script Apps Script. En contrepartie, les données de Civique ne peuvent structurellement pas polluer celles de Nat — ce qui, vu que ce dépôt part d'une copie de Nat, supprime toute une classe d'erreurs silencieuses.
 
-Le paramètre `appli` reste utile malgré la séparation : il distingue les trois quizz (`csp`, `cr`, `nat`) **à l'intérieur** de Civique. Il change de rôle plutôt que de disparaître.
+Le paramètre `appli` de Nat n'a plus de raison d'être : les projets étant séparés, la dimension utile n'est plus l'application mais le parcours. Il est remplacé par `quizz` (`csp`, `cr`, `nat`), joint à tous les événements.
 
 ### Ce que « Premium débloque les trois quizz » change par rapport au prototype
 
@@ -78,7 +78,9 @@ Confirmé fichier par fichier après lecture complète du duplicata. La colonne 
 
 Un seul état local, `premium` à la racine, une entrée par quizz (`csp`, `cr`, `nat`) portant la progression et les compteurs du jour.
 
-Chaque question porte `applicable: ("csp" | "cr" | "nat")[]` — **pattern conservé**, c'est lui qui évite de tripler le contenu commun. Une seule écoute Firestore sert les trois quizz : le filtrage par quizz se fait côté appareil, sur un corpus déjà en mémoire.
+Chaque question appartient à **un seul quizz** (`quizz: "csp" | "cr" | "nat"`). C'est un revirement par rapport au prototype, qui prévoyait un `applicable[]` partagé : un énoncé valable pour plusieurs titres est désormais dupliqué dans la feuille, avec des propositions ajustées à ce que chaque titre exige. Le surcoût éditorial — corriger une coquille dans chaque copie — est assumé en échange de la liberté de doser la difficulté titre par titre.
+
+Une seule écoute Firestore sert malgré tout les trois quizz : le filtrage se fait côté appareil, sur un corpus déjà en mémoire.
 
 `palierMax` n'est plus une constante : il se recalcule **par quizz**, depuis le contenu réellement applicable à ce quizz. Deux quizz peuvent donc avoir un nombre de paliers différent, et c'est normal.
 
@@ -106,7 +108,7 @@ Chaque question porte `applicable: ("csp" | "cr" | "nat")[]` — **pattern conse
 
 ### 1. Maintenant — sans code
 
-- [ ] **Écrire le contenu.** Environ 500 questions au format `{question, choix[], bonne, explication, palier, theme, applicable[]}`. Rien ne le remplace et tout en dépend.
+- [ ] **Écrire le contenu.** Environ 500 questions au format `{id, quizz, question, choix1..4, bonne, explication, theme, palier, actif}` — voir [`docs/feuille-questions.md`](docs/feuille-questions.md). Rien ne le remplace et tout en dépend.
 - [ ] **Vérifier le format officiel de l'examen** — nombre de questions, seuil, thèmes couverts — sur service-public.fr. Le mode examen doit refléter le format réel.
 - [ ] **Créer le projet Firebase Civique**, y déclarer l'application Android `com.hasakistudio.examencivique`, récupérer `google-services.json`.
 - [ ] **Créer la fiche Play Console** de la nouvelle application (nécessaire pour le SHA-256 et le produit Premium).

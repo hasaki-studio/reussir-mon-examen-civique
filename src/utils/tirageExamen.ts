@@ -1,7 +1,6 @@
 // src/utils/tirageExamen.ts
 import { Question } from '../../services/firebase';
 import { melanger } from './melanger';
-import { dedupliquerParGroupe } from './filtresQuestions';
 
 /**
  * Tire les questions d'un examen blanc.
@@ -18,8 +17,7 @@ import { dedupliquerParGroupe } from './filtresQuestions';
  * successifs n'auraient alors pas la même difficulté, et le score cesserait de vouloir dire
  * quelque chose.
  */
-export function tirerExamen(corpus: Question[], nbVoulu: number): Question[] {
-  const questions = dedupliquerParGroupe(corpus);
+export function tirerExamen(questions: Question[], nbVoulu: number): Question[] {
   const nb = Math.min(nbVoulu, questions.length);
   if (nb === 0) return [];
 
