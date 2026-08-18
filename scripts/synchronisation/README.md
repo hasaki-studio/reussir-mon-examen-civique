@@ -19,7 +19,25 @@ Script Apps Script attaché au classeur de contenu. Deux commandes, dans le menu
 
    ⚠️ Un écran « Google n'a pas validé cette application » s'affiche : c'est normal pour un script personnel, non publié. **Paramètres avancés** → *Accéder à … (non sécurisé)*. Sans ce passage, l'autorisation n'aboutit pas et la synchronisation échoue sans explication claire.
 
-L'onglet des questions doit s'appeler **`Questions`**. L'onglet **`Contrôle`** est créé et réécrit à chaque vérification.
+## Un onglet ou trois ?
+
+Les deux marchent. La constante `FEUILLES_QUESTIONS`, en tête du script, liste les onglets à lire :
+
+```js
+var FEUILLES_QUESTIONS = ['Questions'];          // un seul onglet
+var FEUILLES_QUESTIONS = ['CSP', 'CR', 'NAT'];   // un onglet par quizz
+```
+
+C'est un choix d'organisation de la feuille, sans effet sur l'application : ce qui range une question dans un parcours est sa colonne `quizz`, jamais l'onglet qui la porte. Chaque onglet a ses propres en-têtes, leurs colonnes peuvent donc être ordonnées différemment.
+
+Deux contrôles tiennent compte du découpage :
+
+- **L'unicité des identifiants est vérifiée sur l'ensemble**, pas onglet par onglet. Deux `cr-0001` sur deux onglets s'écraseraient à l'écriture ; l'erreur nomme l'onglet et la ligne de la première occurrence.
+- **Quand un onglet porte le nom d'un quizz** (`CSP`, `CR`, `NAT`), une ligne qui en déclare un autre lève un avertissement — signature d'une ligne recopiée d'un onglet à l'autre sans que la colonne ait suivi. La colonne fait foi, c'est elle que lit l'application.
+
+Un onglet listé mais absent du classeur produit une erreur explicite plutôt qu'un silence.
+
+L'onglet **`Contrôle`** est créé et réécrit à chaque vérification.
 
 ## Pourquoi pas une clé d'API Web, comme dans l'application sœur
 

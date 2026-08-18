@@ -19,7 +19,12 @@
 var CLE_PROJET = 'PROJET_FIRESTORE';
 
 var COLLECTION = 'questions_civique';
-var FEUILLE_QUESTIONS = 'Questions';
+// Onglets contenant des questions. Un seul, ou un par quizz — c'est un choix d'organisation
+// de la feuille, sans effet sur l'application : ce qui range une question dans un parcours est
+// sa colonne `quizz`, jamais l'onglet qui la porte.
+//
+// Un onglet par quizz : ['CSP', 'CR', 'NAT'].
+var FEUILLES_QUESTIONS = ['Questions'];
 var FEUILLE_RAPPORT = 'Contrôle';
 
 var QUIZZ_CONNUS = ['csp', 'cr', 'nat'];
@@ -143,30 +148,74 @@ function synchroniserVersFirestore() {
  * ce qui mérite un regard sans empêcher de publier.
  */
 function analyserFeuille() {
-  var erreurs = [];
-  var avertissements = [];
-  var questions = [];
+  var contexte = {
+    erreurs: [],
+    avertissements: [],
+    questions: [],
+    // Partagés entre onglets : un identifiant doit être unique dans toute la banque et non
+    // dans son seul onglet — deux `cr-0001` sur deux onglets s'écraseraient à l'écriture.
+    identifiantsVus: {},
+    typesProvisoires: [],
+  };
 
-  var feuille = SpreadsheetApp.getActive().getSheetByName(FEUILLE_QUESTIONS);
+  FEUILLES_QUESTIONS.forEach(function (nomFeuille) {
+    analyserOnglet(nomFeuille, contexte);
+  });
+
+  if (contexte.typesProvisoires.length > 0) {
+    contexte.avertissements.push({
+      feuille: '',
+      ligne: contexte.typesProvisoires.slice(0, 20).join(', ') +
+        (contexte.typesProvisoires.length > 20 ? '…' : ''),
+      champ: 'type',
+      message: contexte.typesProvisoires.length + ' question(s) au type provisoire — à reclasser ' +
+        'avant toute distribution, sans quoi de fausses mises en situation partiront en ' +
+        'production. Filtrer la colonne « veille » sur « ' + MARQUEUR_TYPE_PROVISOIRE + ' ».',
+    });
+  }
+
+  ajouterAvertissementsDEnsemble(contexte.questions, contexte.avertissements);
+  return {
+    erreurs: contexte.erreurs,
+    avertissements: contexte.avertissements,
+    questions: contexte.questions,
+  };
+}
+
+/**
+ * Lit et contrôle un onglet, en versant ses résultats dans le contexte commun.
+ *
+ * Chaque onglet porte ses propres en-têtes : leurs colonnes peuvent donc être ordonnées
+ * différemment de l'un à l'autre sans conséquence. L'unicité des identifiants, elle, est
+ * vérifiée sur l'ensemble — un identifiant en double écrase un document quel que soit
+ * l'onglet d'où il vient.
+ */
+function analyserOnglet(nomFeuille, contexte) {
+  var erreurs = contexte.erreurs;
+  var avertissements = contexte.avertissements;
+  var questions = contexte.questions;
+  var identifiantsVus = contexte.identifiantsVus;
+  var typesProvisoires = contexte.typesProvisoires;
+
+  var feuille = SpreadsheetApp.getActive().getSheetByName(nomFeuille);
   if (!feuille) {
-    return {
-      erreurs: [{ ligne: '', champ: '', message: 'Onglet « ' + FEUILLE_QUESTIONS + ' » introuvable.' }],
-      avertissements: [],
-      questions: [],
-    };
+    erreurs.push({
+      feuille: nomFeuille,
+      ligne: '',
+      champ: '',
+      message: "Onglet introuvable. Corriger FEUILLES_QUESTIONS en tête du script, ou renommer l'onglet.",
+    });
+    return;
   }
 
   var valeurs = feuille.getDataRange().getValues();
   if (valeurs.length < 2) {
-    return {
-      erreurs: [{ ligne: '', champ: '', message: 'La feuille ne contient aucune question.' }],
-      avertissements: [],
-      questions: [],
-    };
+    avertissements.push({ feuille: nomFeuille, ligne: '', champ: '', message: 'Onglet vide.' });
+    return;
   }
 
-  // Index par nom d'en-tête : l'ordre des colonnes dans la feuille n'a aucune importance,
-  // et en réordonner n'oblige à toucher ni ce script ni l'application.
+  // Index par nom d'en-tête : l'ordre des colonnes n'a aucune importance, et en réordonner
+  // n'oblige à toucher ni ce script ni l'application.
   var index = {};
   var entetes = valeurs[0];
   for (var c = 0; c < entetes.length; c++) {
@@ -174,15 +223,23 @@ function analyserFeuille() {
     if (nom) index[nom] = c;
   }
 
+  var manquantes = 0;
   for (var i = 0; i < COLONNES_REQUISES.length; i++) {
     if (!(COLONNES_REQUISES[i] in index)) {
-      erreurs.push({ ligne: 1, champ: COLONNES_REQUISES[i], message: 'Colonne absente de la feuille.' });
+      erreurs.push({
+        feuille: nomFeuille,
+        ligne: 1,
+        champ: COLONNES_REQUISES[i],
+        message: "Colonne absente de l'onglet.",
+      });
+      manquantes++;
     }
   }
-  if (erreurs.length > 0) return { erreurs: erreurs, avertissements: avertissements, questions: [] };
+  // Sans en-têtes complets, contrôler les lignes ne produirait que du bruit.
+  if (manquantes > 0) return;
 
-  var identifiantsVus = {};
-  var typesProvisoires = [];
+  // Sert de contrôle croisé quand l'onglet porte le nom d'un quizz.
+  var quizzDeLOnglet = normaliser(nomFeuille);
 
   for (var l = 1; l < valeurs.length; l++) {
     var ligne = valeurs[l];
@@ -196,32 +253,49 @@ function analyserFeuille() {
 
     var id = String(champ('id')).trim();
     if (!id) {
-      erreurs.push({ ligne: numero, champ: 'id', message: 'Identifiant vide.' });
+      erreurs.push({ feuille: nomFeuille, ligne: numero, champ: 'id', message: 'Identifiant vide.' });
     } else if (identifiantsVus[id]) {
       // Le cas le plus coûteux : à la synchronisation, le second document écrase le premier
-      // et une question disparaît sans le moindre message.
+      // et une question disparaît sans le moindre message. L'onglet d'origine est nommé —
+      // avec plusieurs onglets, un numéro de ligne seul ne désigne rien.
+      var premier = identifiantsVus[id];
       erreurs.push({
+        feuille: nomFeuille,
         ligne: numero,
         champ: 'id',
-        message: 'Identifiant déjà utilisé ligne ' + identifiantsVus[id] + ' — une question en écraserait une autre.',
+        message: 'Identifiant déjà utilisé — onglet « ' + premier.feuille + ' », ligne ' +
+          premier.ligne + '. Une question en écraserait une autre.',
       });
     } else if (!/^[a-z]{2,4}-\d{3,}$/.test(id)) {
-      avertissements.push({ ligne: numero, champ: 'id', message: 'Format inhabituel (attendu : csp-0001).' });
+      avertissements.push({ feuille: nomFeuille, ligne: numero, champ: 'id', message: 'Format inhabituel (attendu : csp-0001).' });
     }
-    if (id) identifiantsVus[id] = numero;
+    if (id) identifiantsVus[id] = { feuille: nomFeuille, ligne: numero };
 
     var quizz = normaliser(champ('quizz'));
     if (QUIZZ_CONNUS.indexOf(quizz) === -1) {
       erreurs.push({
+        feuille: nomFeuille,
         ligne: numero,
         champ: 'quizz',
         message: 'Valeur « ' + champ('quizz') + ' » inconnue (attendu : ' + QUIZZ_CONNUS.join(', ') + ').',
+      });
+    } else if (quizzDeLOnglet && QUIZZ_CONNUS.indexOf(quizzDeLOnglet) !== -1 && quizz !== quizzDeLOnglet) {
+      // L'onglet porte le nom d'un quizz mais la ligne en déclare un autre : signature d'une
+      // ligne recopiée d'un onglet à l'autre sans que la colonne ait suivi. La colonne fait
+      // foi — c'est elle que lit l'application — mais l'écart mérite un regard.
+      avertissements.push({
+        feuille: nomFeuille,
+        ligne: numero,
+        champ: 'quizz',
+        message: 'Ligne déclarée « ' + quizz + ' » dans un onglet « ' + quizzDeLOnglet +
+          ' » — recopiée d\'un autre onglet ?',
       });
     } else if (id && id.indexOf(quizz + '-') !== 0 && /^[a-z]{2,4}-/.test(id)) {
       // Signature d'une ligne dupliquée depuis un autre quizz dont on a oublié de changer
       // l'identifiant. Un avertissement et non une erreur : seule l'unicité compte vraiment,
       // le préfixe n'est qu'une convention de lecture.
       avertissements.push({
+        feuille: nomFeuille,
         ligne: numero,
         champ: 'id',
         message: 'Identifiant « ' + id + ' » sur une question « ' + quizz +
@@ -234,6 +308,7 @@ function analyserFeuille() {
       // L'application retombe sur « simple », la question n'est donc pas perdue — mais la
       // composition de l'examen blanc s'écarte de la règle sans que rien ne le signale.
       avertissements.push({
+        feuille: nomFeuille,
         ligne: numero,
         champ: 'type',
         message: 'Valeur « ' + champ('type') + ' » inconnue : comptée comme « simple ».',
@@ -242,7 +317,7 @@ function analyserFeuille() {
     }
 
     var enonce = String(champ('question')).trim();
-    if (!enonce) erreurs.push({ ligne: numero, champ: 'question', message: 'Énoncé vide.' });
+    if (!enonce) erreurs.push({ feuille: nomFeuille, ligne: numero, champ: 'question', message: 'Énoncé vide.' });
 
     var choix = [];
     for (var k = 0; k < COLONNES_CHOIX.length; k++) {
@@ -250,13 +325,14 @@ function analyserFeuille() {
       if (proposition) choix.push(proposition);
     }
     if (choix.length < 2) {
-      erreurs.push({ ligne: numero, champ: 'choix', message: 'Moins de deux propositions.' });
+      erreurs.push({ feuille: nomFeuille, ligne: numero, champ: 'choix', message: 'Moins de deux propositions.' });
     } else if (choix.length < 4) {
-      avertissements.push({ ligne: numero, champ: 'choix', message: 'Seulement ' + choix.length + ' propositions.' });
+      avertissements.push({ feuille: nomFeuille, ligne: numero, champ: 'choix', message: 'Seulement ' + choix.length + ' propositions.' });
     }
     var doublonChoix = premierDoublon(choix);
     if (doublonChoix) {
       erreurs.push({
+        feuille: nomFeuille,
         ligne: numero,
         champ: 'choix',
         message: 'Deux propositions identiques : « ' + doublonChoix + ' ».',
@@ -266,6 +342,7 @@ function analyserFeuille() {
     var bonne = Number(champ('bonne'));
     if (!estEntier(bonne) || bonne < 1 || bonne > choix.length) {
       erreurs.push({
+        feuille: nomFeuille,
         ligne: numero,
         champ: 'bonne',
         message: 'Doit être un entier entre 1 et ' + choix.length + ' (valeur lue : « ' + champ('bonne') + ' »).',
@@ -276,12 +353,13 @@ function analyserFeuille() {
     if (!explication) {
       // Sur un QCM, l'explication est le contenu pédagogique : une question sans explication
       // apprend la bonne case, pas la règle.
-      erreurs.push({ ligne: numero, champ: 'explication', message: 'Explication vide.' });
+      erreurs.push({ feuille: nomFeuille, ligne: numero, champ: 'explication', message: 'Explication vide.' });
     }
 
     var theme = String(champ('theme')).trim();
     if (THEMES_CONNUS.indexOf(theme) === -1) {
       erreurs.push({
+        feuille: nomFeuille,
         ligne: numero,
         champ: 'theme',
         message: 'Thème « ' + theme + ' » inconnu — la question s\'afficherait en gris.',
@@ -290,12 +368,13 @@ function analyserFeuille() {
 
     var palier = Number(champ('palier'));
     if (!estEntier(palier) || palier < 1) {
-      erreurs.push({ ligne: numero, champ: 'palier', message: 'Doit être un entier supérieur ou égal à 1.' });
+      erreurs.push({ feuille: nomFeuille, ligne: numero, champ: 'palier', message: 'Doit être un entier supérieur ou égal à 1.' });
     }
 
     var actif = lireBooleen(champ('actif'));
     if (actif === null) {
       erreurs.push({
+        feuille: nomFeuille,
         ligne: numero,
         champ: 'actif',
         message: 'Doit valoir VRAI ou FAUX (valeur lue : « ' + champ('actif') + ' »).',
@@ -303,12 +382,13 @@ function analyserFeuille() {
     }
 
     if (normaliser(champ('veille')).indexOf(MARQUEUR_TYPE_PROVISOIRE) !== -1) {
-      typesProvisoires.push(numero);
+      typesProvisoires.push(nomFeuille + ' L' + numero);
     }
 
     if (erreurs.length !== erreursAvant) continue; // ligne invalide : rien à envoyer
 
     questions.push({
+      feuille: nomFeuille,
       ligne: numero,
       id: id,
       quizz: quizz,
@@ -326,20 +406,8 @@ function analyserFeuille() {
       actif: actif,
     });
   }
-
-  if (typesProvisoires.length > 0) {
-    avertissements.push({
-      ligne: typesProvisoires.slice(0, 20).join(', ') + (typesProvisoires.length > 20 ? '…' : ''),
-      champ: 'type',
-      message: typesProvisoires.length + ' question(s) au type provisoire — à reclasser avant ' +
-        'toute distribution, sans quoi de fausses mises en situation partiront en production. ' +
-        'Filtrer la colonne « veille » sur « ' + MARQUEUR_TYPE_PROVISOIRE + ' ».',
-    });
-  }
-
-  ajouterAvertissementsDEnsemble(questions, avertissements);
-  return { erreurs: erreurs, avertissements: avertissements, questions: questions };
 }
+
 
 /** Contrôles qui ne se voient qu'à l'échelle du corpus, pas ligne à ligne. */
 function ajouterAvertissementsDEnsemble(questions, avertissements) {
@@ -349,7 +417,7 @@ function ajouterAvertissementsDEnsemble(questions, avertissements) {
       return question.quizz === quizz && question.actif;
     });
     if (duQuizz.length === 0) {
-      avertissements.push({ ligne: '', champ: quizz, message: 'Aucune question active pour ce quizz.' });
+      avertissements.push({ feuille: '', ligne: '', champ: quizz, message: 'Aucune question active pour ce quizz.' });
       continue;
     }
 
@@ -358,6 +426,7 @@ function ajouterAvertissementsDEnsemble(questions, avertissements) {
     }).length;
     if (situations < SITUATIONS_PAR_EXAMEN) {
       avertissements.push({
+        feuille: '',
         ligne: '',
         champ: quizz,
         message: situations + ' mise(s) en situation pour ' + SITUATIONS_PAR_EXAMEN +
@@ -375,6 +444,7 @@ function ajouterAvertissementsDEnsemble(questions, avertissements) {
       var nb = parPalier[palier];
       if (nb < 8 || nb > 12) {
         avertissements.push({
+          feuille: '',
           ligne: '',
           champ: quizz + ' · palier ' + palier,
           message: nb + ' question(s) — la cible est de 8 à 12.',
@@ -392,16 +462,16 @@ function ecrireRapport(analyse) {
   if (!feuille) feuille = classeur.insertSheet(FEUILLE_RAPPORT);
   feuille.clear();
 
-  var lignes = [['Gravité', 'Ligne', 'Champ', 'Message']];
+  var lignes = [['Gravité', 'Onglet', 'Ligne', 'Champ', 'Message']];
   analyse.erreurs.forEach(function (e) {
-    lignes.push(['Erreur', e.ligne, e.champ, e.message]);
+    lignes.push(['Erreur', e.feuille || '', e.ligne, e.champ, e.message]);
   });
   analyse.avertissements.forEach(function (a) {
-    lignes.push(['Avertissement', a.ligne, a.champ, a.message]);
+    lignes.push(['Avertissement', a.feuille || '', a.ligne, a.champ, a.message]);
   });
 
-  lignes.push(['', '', '', '']);
-  lignes.push(['Bilan', '', 'Questions valides', analyse.questions.length]);
+  lignes.push(['', '', '', '', '']);
+  lignes.push(['Bilan', '', '', 'Questions valides', analyse.questions.length]);
   QUIZZ_CONNUS.forEach(function (quizz) {
     var duQuizz = analyse.questions.filter(function (q) {
       return q.quizz === quizz && q.actif;
@@ -410,16 +480,17 @@ function ecrireRapport(analyse) {
       return q.type === 'situation';
     }).length;
     lignes.push([
-      'Bilan', '', quizz,
+      'Bilan', '', '', quizz,
       duQuizz.length + ' active(s) · ' + situations + ' situation(s) · ' +
         (duQuizz.length - situations) + ' simple(s)',
     ]);
   });
-  lignes.push(['Bilan', '', 'Vérifié le', new Date()]);
+  lignes.push(['Bilan', '', '', 'Onglets lus', FEUILLES_QUESTIONS.join(', ')]);
+  lignes.push(['Bilan', '', '', 'Vérifié le', new Date()]);
 
-  feuille.getRange(1, 1, lignes.length, 4).setValues(lignes);
-  feuille.getRange(1, 1, 1, 4).setFontWeight('bold');
-  feuille.setColumnWidth(4, 640);
+  feuille.getRange(1, 1, lignes.length, 5).setValues(lignes);
+  feuille.getRange(1, 1, 1, 5).setFontWeight('bold');
+  feuille.setColumnWidth(5, 640);
   feuille.setFrozenRows(1);
   classeur.setActiveSheet(feuille);
 }

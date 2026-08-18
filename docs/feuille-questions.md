@@ -25,9 +25,9 @@ Côté code, il n'y a rien à savoir de ce cloisonnement : chaque ligne est une 
 
 ## Colonnes
 
-**Un seul onglet**, une ligne par question, une ligne d'en-tête. Les trois quizz y cohabitent, distingués par la colonne `quizz`.
+Une ligne par question, une ligne d'en-tête. **Un onglet ou trois, au choix** — le script lit la liste d'onglets déclarée dans `FEUILLES_QUESTIONS`. Ce qui range une question dans un parcours est sa colonne `quizz`, jamais l'onglet qui la porte.
 
-Trois onglets — un par quizz — fonctionneraient aussi : le script les concatènerait. Mais un seul onglet vaut mieux, pour des raisons qui se paient à l'usage :
+Un onglet unique reste ce que je recommande, pour des raisons qui se paient à l'usage :
 
 - **Une seule ligne d'en-tête à maintenir.** Ce format a déjà gagné deux colonnes en cours de route (`type`, `veille`) et en gagnera d'autres. Avec trois onglets, chaque ajout se fait trois fois, et le jour où l'un diverge — une colonne en plus, deux colonnes interverties — la synchronisation se met à lire de travers sans rien signaler.
 - **Dupliquer une question pour un autre titre devient un geste.** Copier la ligne juste en dessous, changer `id`, `quizz` et les propositions. Entre onglets, c'est un aller-retour à chaque fois, et le contenu cloisonné rend ce geste fréquent.
@@ -35,6 +35,8 @@ Trois onglets — un par quizz — fonctionneraient aussi : le script les concat
 - **Le script lit une plage au lieu d'énumérer des onglets** et de décider lesquels sont du contenu — car il y aura d'autres onglets : notes, lexique, brouillons.
 
 L'argument des trois onglets, c'est la lisibilité à 1 500 lignes. Les **vues filtrées** de Google Sheets y répondent sans découper les données : une vue par quizz, chacune avec son propre filtre et son propre tri, sans déranger ni la feuille ni les autres personnes qui la consultent.
+
+Cela dit, aucun de ces arguments n'est bloquant : si trois onglets vous conviennent mieux à la rédaction, déclarez-les et le script s'en accommode — l'unicité des identifiants et la cohérence onglet/quizz restent vérifiées sur l'ensemble.
 
 ### Avant d'écrire la première question
 
