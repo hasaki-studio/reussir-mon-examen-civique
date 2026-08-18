@@ -25,9 +25,25 @@ Côté code, il n'y a rien à savoir de ce cloisonnement : chaque ligne est une 
 
 ## Colonnes
 
-Un onglet, une ligne par question, une ligne d'en-tête.
+**Un seul onglet**, une ligne par question, une ligne d'en-tête. Les trois quizz y cohabitent, distingués par la colonne `quizz`.
 
-*(Trois onglets — un par quizz — fonctionnent aussi bien : le script les concatène et la colonne `quizz` reste renseignée dans chacun. C'est un choix de confort d'édition, sans effet sur l'application.)*
+Trois onglets — un par quizz — fonctionneraient aussi : le script les concatènerait. Mais un seul onglet vaut mieux, pour des raisons qui se paient à l'usage :
+
+- **Une seule ligne d'en-tête à maintenir.** Ce format a déjà gagné deux colonnes en cours de route (`type`, `veille`) et en gagnera d'autres. Avec trois onglets, chaque ajout se fait trois fois, et le jour où l'un diverge — une colonne en plus, deux colonnes interverties — la synchronisation se met à lire de travers sans rien signaler.
+- **Dupliquer une question pour un autre titre devient un geste.** Copier la ligne juste en dessous, changer `id`, `quizz` et les propositions. Entre onglets, c'est un aller-retour à chaque fois, et le contenu cloisonné rend ce geste fréquent.
+- **Les comptes sont immédiats.** « Combien de mises en situation en `nat` ? », « combien de questions au palier 3 en `csp` ? » : un `COUNTIFS` sur une plage unique, ou un tableau croisé. Sur trois onglets, chaque compte devient une somme de trois formules.
+- **Le script lit une plage au lieu d'énumérer des onglets** et de décider lesquels sont du contenu — car il y aura d'autres onglets : notes, lexique, brouillons.
+
+L'argument des trois onglets, c'est la lisibilité à 1 500 lignes. Les **vues filtrées** de Google Sheets y répondent sans découper les données : une vue par quizz, chacune avec son propre filtre et son propre tri, sans déranger ni la feuille ni les autres personnes qui la consultent.
+
+### Avant d'écrire la première question
+
+- **Figer l'ordre des colonnes** maintenant. Le script s'appuie sur les en-têtes ; les réordonner ensuite est sans risque, en insérer une au milieu d'une synchronisation en cours ne l'est pas.
+- **Listes déroulantes** (Données → Validation des données) sur `quizz`, `type`, `theme` et `actif`. C'est ce qui empêche un `NAT` en majuscules ou un thème mal accentué, deux erreurs invisibles à la relecture.
+- **Contrôle des doublons d'identifiant** dans une colonne de service : `=COUNTIF($A:$A;$A2)>1`, avec une mise en forme conditionnelle. Un identifiant en double, c'est une question qui en écrase une autre à la synchronisation.
+- ⚠️ **L'identifiant ne doit jamais être une formule** — surtout pas une formule dépendant de la position de la ligne, type `="csp-"&TEXTE(LIGNE()-1;"0000")`. Un tri, une insertion, une suppression, et toutes les questions changent d'identifiant d'un coup : la progression des utilisateurs et l'historique des examens partent avec. Écrire les identifiants en dur, ou générer puis coller en valeurs.
+
+Un modèle importable — en-têtes et deux exemples, dont une mise en situation — est fourni : [`modele-feuille.csv`](modele-feuille.csv) (Fichier → Importer → Insérer de nouvelles feuilles).
 
 | Colonne | Type | Obligatoire | Contenu |
 |---|---|---|---|
