@@ -17,6 +17,14 @@ Le dépôt était une copie de « Mon Entretien : Naturalisation » à son état
 | 4 — Légal et conformité | À faire |
 | 5 — Code croisé, iOS | Reporté |
 
+### Ce qu'il faut pour un premier build sur téléphone
+
+Le projet Firebase est le seul prérequis, et il se règle en dix minutes : créer le projet, y déclarer l'application Android `com.hasakistudio.examencivique`, déposer `google-services.json` à la racine, créer la base Firestore. Ni AdMob, ni Play Console, ni App Check ne sont nécessaires à ce stade — **ne pas activer l'enforcement App Check**, qui bloquerait l'application sur un écran de chargement infini.
+
+Expo Go ne peut pas servir de raccourci : Firebase, AdMob et `expo-iap` sont des modules natifs absents du client Expo Go. Il faut `expo run:android` ou un dev client.
+
+Le contenu, lui, n'est pas un prérequis : `src/config/questionsDemo.ts` fournit quinze questions locales en développement, sans quoi l'application se lancerait sur une liste vide et le mode examen n'aurait rien à montrer. Le garde-fou est `__DEV__` : ce contenu ne peut pas partir en release.
+
 ⚠️ **Le dépôt ne compile pas tant que le projet Firebase de Civique n'existe pas**, et c'est voulu : `google-services.json` déclare encore le package de Nat, qui ne correspond plus à `com.hasakistudio.examencivique`. Le build Android s'arrête donc sur « No matching client found for package name » au lieu d'écrire silencieusement dans le projet de l'application sœur. Déposer les deux fichiers du nouveau projet lève le blocage.
 
 ### Écarts assumés par rapport au plan initial
