@@ -36,6 +36,8 @@ Une **erreur** produirait une question absente ou fausse dans l'application, et 
 
 Un **avertissement** mérite un regard sans empêcher de publier : `type` inconnu (compté comme `simple`), identifiant au format inhabituel ou dont le préfixe ne correspond pas au quizz — signature d'une ligne recopiée —, moins de quatre propositions, moins de douze mises en situation pour un quizz, palier hors de la cible de 8 à 12 questions.
 
+Un avertissement particulier compte les lignes portant **`TYPE PROVISOIRE`** dans la colonne `veille` : des questions dont le `type` ne dit pas la vérité, le temps d'essayer le mode examen. Il faut les reclasser avant toute distribution.
+
 Le bilan par quizz — questions actives, mises en situation, questions simples — est écrit en bas de l'onglet `Contrôle`.
 
 ## Format attendu

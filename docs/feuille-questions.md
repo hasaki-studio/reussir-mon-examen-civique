@@ -69,6 +69,10 @@ Le jour où le doute devient sérieux, le geste est `actif = FAUX` : la question
 
 Filtrer la colonne `veille` avant chaque distribution donne la liste de ce qu'il faut revérifier. C'est le complément naturel des `TODO(contenu)` du code.
 
+**Une convention réservée : `TYPE PROVISOIRE`.** Écrire ce marqueur dans `veille` signale une question dont le `type` ne dit pas la vérité — typiquement une question simple étiquetée `situation` pour pouvoir essayer le mode examen avant que les vraies mises en situation soient écrites. C'est un usage légitime, et même nécessaire : sans lui, l'examen blanc reste intestable pendant des semaines.
+
+Le script de vérification recompte ces lignes à chaque passage et le rappelle. Un aide-mémoire posé un jour de rédaction ne survit pas trois semaines ; une alerte à chaque contrôle, si — et c'est ce qui évite que de fausses mises en situation partent en production.
+
 ### Une proposition par cellule, et non les quatre dans une seule
 
 Regrouper les propositions dans une cellule unique obligerait à les découper sur un séparateur, et le contenu lui-même en contient déjà : `Oui, sous peine d'amende` se couperait en deux sur la virgule. Il faudrait alors un séparateur exotique — `|` par exemple — dont il faudrait se souvenir de ne jamais l'employer dans un texte, des années durant. Quatre cellules suppriment le problème au lieu de le contourner, et une cellule courte reste lisible et corrigeable à l'œil.

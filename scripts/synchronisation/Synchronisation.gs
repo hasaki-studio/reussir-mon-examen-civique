@@ -47,6 +47,16 @@ var COLONNES_CHOIX = ['choix1', 'choix2', 'choix3', 'choix4'];
 /** Mises en situation attendues par examen — sert à alerter quand le stock est trop mince. */
 var SITUATIONS_PAR_EXAMEN = 12;
 
+/**
+ * Marqueur à écrire dans la colonne `veille` d'une question dont le `type` est provisoire —
+ * typiquement une question simple étiquetée « situation » pour pouvoir essayer le mode examen
+ * avant que les vraies mises en situation soient écrites.
+ *
+ * Le script les recompte à chaque vérification : un aide-mémoire posé un jour de rédaction ne
+ * survit pas trois semaines, une alerte à chaque contrôle si.
+ */
+var MARQUEUR_TYPE_PROVISOIRE = 'type provisoire';
+
 /** Firestore plafonne une transaction à 500 écritures ; on garde une marge. */
 var TAILLE_LOT = 400;
 
@@ -172,6 +182,7 @@ function analyserFeuille() {
   if (erreurs.length > 0) return { erreurs: erreurs, avertissements: avertissements, questions: [] };
 
   var identifiantsVus = {};
+  var typesProvisoires = [];
 
   for (var l = 1; l < valeurs.length; l++) {
     var ligne = valeurs[l];
@@ -291,6 +302,10 @@ function analyserFeuille() {
       });
     }
 
+    if (normaliser(champ('veille')).indexOf(MARQUEUR_TYPE_PROVISOIRE) !== -1) {
+      typesProvisoires.push(numero);
+    }
+
     if (erreurs.length !== erreursAvant) continue; // ligne invalide : rien à envoyer
 
     questions.push({
@@ -306,6 +321,16 @@ function analyserFeuille() {
       palier: palier,
       palierProvisoire: lireBooleen(champ('palierProvisoire')) === true,
       actif: actif,
+    });
+  }
+
+  if (typesProvisoires.length > 0) {
+    avertissements.push({
+      ligne: typesProvisoires.slice(0, 20).join(', ') + (typesProvisoires.length > 20 ? '…' : ''),
+      champ: 'type',
+      message: typesProvisoires.length + ' question(s) au type provisoire — à reclasser avant ' +
+        'toute distribution, sans quoi de fausses mises en situation partiront en production. ' +
+        'Filtrer la colonne « veille » sur « ' + MARQUEUR_TYPE_PROVISOIRE + ' ».',
     });
   }
 
