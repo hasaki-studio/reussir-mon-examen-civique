@@ -73,9 +73,12 @@ export default function SelectionQuizz({
           <View style={[styles.bandeDrapeau, { backgroundColor: '#A62B2B' }]} />
         </View>
       </View>
-      <Text style={styles.eyebrow}>Préparation à l'examen civique</Text>
-      <Text style={styles.titre}>Réussir mon test civique</Text>
-      <Text style={styles.sousTitre}>Choisissez le titre de séjour concerné</Text>
+      {/* Même hiérarchie que l'application sœur : le verbe en grand et dans la teinte chaude,
+          le nom du produit dessous en bleu nuit. Les deux applications se reconnaissent ainsi
+          au premier coup d'œil, sans partager autre chose que leur charte. */}
+      <Text style={styles.accroche}>Réussir</Text>
+      <Text style={styles.titre}>Mon examen civique</Text>
+      <Text style={styles.sousTitre}>Choisissez le test que vous souhaitez réussir</Text>
 
       {lignes.map((ligne) => {
         const pourcentage = ligne.total ? (ligne.debloquees / ligne.total) * 100 : 0;
@@ -148,8 +151,8 @@ const styles = StyleSheet.create({
   illustration: { alignItems: 'center', marginBottom: 18 },
   drapeau: { flexDirection: 'row', width: 66, height: 56 },
   bandeDrapeau: { width: 22, height: 56 },
-  eyebrow: { fontSize: 11, letterSpacing: 1, textTransform: 'uppercase', color: couleurs.or, fontFamily: polices.texteSemiGras, marginBottom: 6 },
-  titre: { fontSize: 26, fontFamily: polices.titre, color: couleurs.bleuNuit },
+  accroche: { fontSize: 34, lineHeight: 40, fontFamily: polices.titreGras, color: couleurs.or },
+  titre: { fontSize: 25, lineHeight: 31, fontFamily: polices.titreGras, color: couleurs.bleuNuit },
   sousTitre: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 6, marginBottom: 18 },
   carte: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 14, padding: 18, marginBottom: 14, backgroundColor: couleurs.papier },
   pastille: { width: 30, height: 4, borderRadius: 2, marginBottom: 10 },
