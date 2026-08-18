@@ -29,6 +29,12 @@ compte Google ayant des droits IAM sur le projet. Il contourne les règles par c
 collection peut donc rester en `allow write: if false` tout en étant alimentée depuis la
 feuille — c'est ce que fait [`firestore.rules`](../../firestore.rules).
 
+⚠️ **Ne jamais ouvrir l'écriture avant une synchronisation.** L'application sœur impose ce
+geste — ouvrir les règles, synchroniser, refermer — parce qu'elle écrit avec une clé d'API Web.
+Ici c'est inutile, et contre-productif : pendant ces quelques minutes, la clé distribuée dans
+l'APK suffirait à réécrire toute la banque de questions. Si une synchronisation échoue, la
+cause est ailleurs — voir plus bas.
+
 ## Pourquoi aucune clé de compte de service
 
 Le script s'authentifie avec le jeton OAuth d'Apps Script (portée `datastore`), donc **sous l'identité de la personne qui lance la commande**. Aucun secret n'est stocké dans le script ni dans ce dépôt — qui est public, ce qui rend le point non négociable.
