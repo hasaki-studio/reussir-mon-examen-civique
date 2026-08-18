@@ -10,9 +10,14 @@ Script Apps Script attaché au classeur de contenu. Deux commandes, dans le menu
 1. Dans le classeur : **Extensions → Apps Script**.
 2. Coller `Synchronisation.gs` dans le fichier de code (renommer le fichier par défaut si besoin).
 3. Afficher le manifeste (**Paramètres du projet → Afficher « appsscript.json »**) et y coller le contenu d'`appsscript.json`.
-4. **Paramètres du projet → Propriétés du script** : ajouter `PROJET_FIRESTORE` = identifiant du projet Firebase de Civique.
+4. **Paramètres du projet → Propriétés du script** : ajouter `PROJET_FIRESTORE` = **identifiant** du projet Firebase.
+
+   ⚠️ L'identifiant, pas le nom affiché. Un projet nommé « Civique » a souvent un identifiant du type `civique-4f2a1`. Il se lit dans la console Firebase → ⚙️ Paramètres du projet → *ID du projet*. Se tromper ici donne un 403 qui ressemble à un problème de droits.
+
 5. Recharger le classeur : le menu **Contenu Civique** apparaît.
 6. Premier lancement : Google demande les autorisations. Les accorder avec le compte qui **a les droits d'écriture sur le projet Firebase**.
+
+   ⚠️ Un écran « Google n'a pas validé cette application » s'affiche : c'est normal pour un script personnel, non publié. **Paramètres avancés** → *Accéder à … (non sécurisé)*. Sans ce passage, l'autorisation n'aboutit pas et la synchronisation échoue sans explication claire.
 
 L'onglet des questions doit s'appeler **`Questions`**. L'onglet **`Contrôle`** est créé et réécrit à chaque vérification.
 

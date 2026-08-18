@@ -319,7 +319,10 @@ function analyserFeuille() {
       explication: explication,
       theme: theme,
       palier: palier,
-      palierProvisoire: lireBooleen(champ('palierProvisoire')) === true,
+      // Clé en minuscules : `champ()` interroge un index construit par `normaliser()`, qui
+      // abaisse la casse des en-têtes. Une clé en casse mixte n'y correspondrait jamais, et
+      // la colonne serait silencieusement lue comme vide.
+      palierProvisoire: lireBooleen(champ('palierprovisoire')) === true,
       actif: actif,
     });
   }
