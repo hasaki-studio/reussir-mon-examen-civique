@@ -42,9 +42,11 @@ var THEMES_CONNUS = [
 ];
 
 /** Colonnes indispensables. L'ordre dans la feuille est libre : tout se lit par nom d'en-tête. */
+// Colonnes sans lesquelles une question ne peut pas exister. `palier` et `actif` n'en font
+// pas partie : leur absence a une valeur par défaut raisonnable, respectivement le palier
+// déduit du type et une question active.
 var COLONNES_REQUISES = [
-  'id', 'quizz', 'question', 'choix1', 'choix2', 'bonne',
-  'explication', 'type', 'theme', 'palier', 'actif',
+  'id', 'quizz', 'question', 'choix1', 'choix2', 'bonne', 'explication', 'type', 'theme',
 ];
 
 var COLONNES_CHOIX = ['choix1', 'choix2', 'choix3', 'choix4'];
@@ -339,13 +341,17 @@ function analyserOnglet(nomFeuille, contexte) {
       });
     }
 
-    var bonne = Number(champ('bonne'));
-    if (!estEntier(bonne) || bonne < 1 || bonne > choix.length) {
+    // Deux écritures acceptées : le numéro de la proposition, ou son texte recopié. La
+    // seconde est la plus naturelle à la rédaction — on écrit la bonne réponse, on ne compte
+    // pas des colonnes — et c'est ce que produit un contenu saisi sans le format en tête.
+    var bonne = numeroBonneReponse(champ('bonne'), choix);
+    if (bonne === null) {
       erreurs.push({
         feuille: nomFeuille,
         ligne: numero,
         champ: 'bonne',
-        message: 'Doit être un entier entre 1 et ' + choix.length + ' (valeur lue : « ' + champ('bonne') + ' »).',
+        message: 'Doit être un entier entre 1 et ' + choix.length +
+          ', ou le texte exact d\'une proposition (valeur lue : « ' + champ('bonne') + ' »).',
       });
     }
 
@@ -366,18 +372,31 @@ function analyserOnglet(nomFeuille, contexte) {
       });
     }
 
-    var palier = Number(champ('palier'));
+    // Palier vide : déduit du type et marqué provisoire, comme le fait l'application sœur.
+    // Rien n'oblige à répartir les paliers dès la rédaction ; ce qui compte est de savoir
+    // lesquels restent à trancher, ce que la colonne `palierProvisoire` conserve.
+    var palierBrut = String(champ('palier')).trim();
+    var palier = palierBrut === '' ? (type === 'situation' ? 2 : 1) : Number(palierBrut);
+    var palierDeduit = palierBrut === '';
     if (!estEntier(palier) || palier < 1) {
-      erreurs.push({ feuille: nomFeuille, ligne: numero, champ: 'palier', message: 'Doit être un entier supérieur ou égal à 1.' });
+      erreurs.push({
+        feuille: nomFeuille,
+        ligne: numero,
+        champ: 'palier',
+        message: 'Doit être un entier supérieur ou égal à 1 (valeur lue : « ' + palierBrut + ' »).',
+      });
     }
 
-    var actif = lireBooleen(champ('actif'));
+    // Cellule vide : la question est active. Écrire une ligne, c'est vouloir la question ;
+    // c'est la retirer qui demande un geste explicite (`FAUX`).
+    var actifBrut = String(champ('actif')).trim();
+    var actif = actifBrut === '' ? true : lireBooleen(actifBrut);
     if (actif === null) {
       erreurs.push({
         feuille: nomFeuille,
         ligne: numero,
         champ: 'actif',
-        message: 'Doit valoir VRAI ou FAUX (valeur lue : « ' + champ('actif') + ' »).',
+        message: 'Doit valoir VRAI ou FAUX, ou rester vide (valeur lue : « ' + actifBrut + ' »).',
       });
     }
 
@@ -402,7 +421,7 @@ function analyserOnglet(nomFeuille, contexte) {
       // Clé en minuscules : `champ()` interroge un index construit par `normaliser()`, qui
       // abaisse la casse des en-têtes. Une clé en casse mixte n'y correspondrait jamais, et
       // la colonne serait silencieusement lue comme vide.
-      palierProvisoire: lireBooleen(champ('palierprovisoire')) === true,
+      palierProvisoire: palierDeduit || lireBooleen(champ('palierprovisoire')) === true,
       actif: actif,
     });
   }
@@ -652,6 +671,29 @@ function lireBooleen(valeur) {
   if (texte === '') return null;
   if (texte === 'vrai' || texte === 'true' || texte === 'oui' || texte === '1') return true;
   if (texte === 'faux' || texte === 'false' || texte === 'non' || texte === '0') return false;
+  return null;
+}
+
+/**
+ * Numéro (1-based) de la bonne proposition, à partir d'un numéro ou du texte recopié.
+ * Renvoie null si la valeur ne désigne aucune proposition.
+ */
+function numeroBonneReponse(valeur, choix) {
+  var brut = String(valeur === null || valeur === undefined ? '' : valeur).trim();
+  if (brut === '') return null;
+
+  var nombre = Number(brut);
+  if (estEntier(nombre)) {
+    return nombre >= 1 && nombre <= choix.length ? nombre : null;
+  }
+
+  // Comparaison sur la casse et les espaces uniquement : corriger une faute de frappe dans
+  // une proposition ne doit pas casser la correspondance de façon invisible, mais deux
+  // propositions différentes ne doivent pas se confondre non plus.
+  var cible = normaliser(brut);
+  for (var i = 0; i < choix.length; i++) {
+    if (normaliser(choix[i]) === cible) return i + 1;
+  }
   return null;
 }
 

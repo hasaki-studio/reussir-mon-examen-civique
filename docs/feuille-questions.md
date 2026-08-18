@@ -54,12 +54,12 @@ Un modèle importable — en-têtes et deux exemples, dont une mise en situation
 | `type` | texte | **oui** | `simple` (question de connaissance) ou `situation` (mise en situation). Détermine la composition de l'examen blanc. |
 | `question` | texte | **oui** | L'énoncé. Une seule question par ligne, pas de « et » qui en cache deux. |
 | `choix1` … `choix4` | texte | **oui** | Une proposition par cellule. Quatre en principe ; le code en accepte au minimum deux. |
-| `bonne` | nombre | **oui** | Numéro de la bonne proposition, **de 1 à 4** tel qu'on le lit dans la feuille. Le script le convertit en index 0-3 pour Firestore. |
+| `bonne` | nombre ou texte | **oui** | Numéro de la bonne proposition (**1 à 4**), **ou son texte recopié à l'identique**. Le script accepte les deux et convertit en index 0-3 pour Firestore. |
 | `explication` | texte | **oui** | Pourquoi cette réponse est la bonne. C'est le contenu pédagogique du produit : jamais payant, toujours affiché après réponse. |
 | `theme` | texte | **oui** | Doit correspondre **au caractère près** à un thème connu (voir plus bas). |
-| `palier` | nombre | **oui** | Niveau de déblocage, à partir de 1. |
-| `actif` | booléen | **oui** | `FAUX` retire la question de l'application sans la supprimer de la feuille. C'est le bon geste pour une question douteuse. |
-| `palierProvisoire` | booléen | non | Marque un palier attribué à la louche, à rééquilibrer quand le corpus aura grandi. Sans effet dans l'application. |
+| `palier` | nombre | non | Niveau de déblocage, à partir de 1. **Vide : déduit du type** — 1 pour une question simple, 2 pour une mise en situation — et la question est marquée `palierProvisoire`. |
+| `actif` | booléen | non | **Vide : la question est active.** `FAUX` la retire de l'application sans la supprimer de la feuille — le bon geste pour une question douteuse. |
+| `palierProvisoire` | booléen | non | Marque un palier attribué à la louche, à rééquilibrer quand le corpus aura grandi. Posé automatiquement quand `palier` est vide. Sans effet dans l'application. |
 | `veille` | texte | non | Ce qui est à resurveiller sur cette question : une règle susceptible de changer, un chiffre à reconfirmer, une source non recoupée. Colonne éditoriale, **non synchronisée**. |
 | `source` | texte | non | D'où vient l'information (Livret du citoyen, service-public.fr, article de loi). Ne part pas dans Firestore, mais rend une relecture possible un an plus tard. |
 
