@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// Règles de sécurité Firestore — projet Civique.
+//
+// La banque de questions est en lecture publique et en écriture fermée. C'est la seule
+// combinaison qui tienne : l'application doit pouvoir lire sans compte utilisateur, et
+// personne ne doit pouvoir réécrire le contenu.
+//
+// ⚠️ « allow write: if false » ferme l'écriture **au client**, pas à la synchronisation.
+// Le script Apps Script écrit avec un jeton OAuth Google du propriétaire du projet : ce type
+// d'accès est un accès serveur, qui contourne les règles par conception. Écrire depuis une
+// feuille de calcul ne suppose donc jamais d'ouvrir l'écriture ici.
+//
+// La clé d'API Web, elle, est distribuée dans l'APK et dans le dépôt public : toute règle
+// d'écriture qui ne dépend que d'elle revient à laisser n'importe qui réécrire le contenu.
+//
+// Déploiement : console Firebase → Firestore → onglet Règles → coller → Publier.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /questions_civique/{document} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Tout le reste est fermé : une collection créée par erreur ne doit pas hériter
+    // d'un accès ouvert.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

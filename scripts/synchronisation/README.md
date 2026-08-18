@@ -16,6 +16,19 @@ Script Apps Script attaché au classeur de contenu. Deux commandes, dans le menu
 
 L'onglet des questions doit s'appeler **`Questions`**. L'onglet **`Contrôle`** est créé et réécrit à chaque vérification.
 
+## Pourquoi pas une clé d'API Web, comme dans l'application sœur
+
+Le script de Nat écrit avec `?key=<clé d'API Web>` et sans en-tête d'autorisation. C'est une
+requête **non authentifiée** : elle passe par les règles de sécurité Firestore, exactement
+comme l'application. Elle ne peut donc aboutir que si `allow write` est vrai pour la
+collection — c'est-à-dire si **n'importe qui** peut réécrire la banque de questions, la clé
+d'API Web étant distribuée dans l'APK et lisible par quiconque le décompresse.
+
+Le jeton OAuth utilisé ici est d'une autre nature : c'est un accès **serveur**, rattaché à un
+compte Google ayant des droits IAM sur le projet. Il contourne les règles par conception. La
+collection peut donc rester en `allow write: if false` tout en étant alimentée depuis la
+feuille — c'est ce que fait [`firestore.rules`](../../firestore.rules).
+
 ## Pourquoi aucune clé de compte de service
 
 Le script s'authentifie avec le jeton OAuth d'Apps Script (portée `datastore`), donc **sous l'identité de la personne qui lance la commande**. Aucun secret n'est stocké dans le script ni dans ce dépôt — qui est public, ce qui rend le point non négociable.
@@ -39,6 +52,18 @@ Un **avertissement** mérite un regard sans empêcher de publier : `type` inconn
 Un avertissement particulier compte les lignes portant **`TYPE PROVISOIRE`** dans la colonne `veille` : des questions dont le `type` ne dit pas la vérité, le temps d'essayer le mode examen. Il faut les reclasser avant toute distribution.
 
 Le bilan par quizz — questions actives, mises en situation, questions simples — est écrit en bas de l'onglet `Contrôle`.
+
+## Si la synchronisation répond 403
+
+Deux causes, dans cet ordre de probabilité :
+
+1. **Le compte qui a autorisé le script n'est pas celui qui possède le projet Firebase.**
+   Réexécuter la commande et accorder les autorisations avec le bon compte.
+2. **La propriété `PROJET_FIRESTORE` désigne un autre projet**, sur lequel ce compte n'a pas
+   de droits.
+
+Une réponse 404 sur la collection est normale tant qu'aucun document n'existe : la
+synchronisation la crée au premier envoi.
 
 ## Format attendu
 
