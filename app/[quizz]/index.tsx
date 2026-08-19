@@ -25,7 +25,12 @@ const TAILLE_SESSION_REVISION = 15;
 export default function AccueilQuizzRoute() {
   const router = useRouter();
   const quizz = useQuizzRoute();
-  const [pubPalierEnAttente, setPubPalierEnAttente] = useState(false);
+  // Distingue pourquoi la pub palier a été ouverte : depuis « Débloquer plus de questions »
+  // (aucune suite automatique attendue) ou depuis « Réviser en détail » alors que ce mode est
+  // encore verrouillé — auquel cas regarder la pub sans être emmené vers le détail une fois
+  // débloqué laisserait l'utilisateur revenu exactement là d'où il est parti, sans la moindre
+  // suite visible à son geste.
+  const [intentionPubPalier, setIntentionPubPalier] = useState<'detail' | 'debloquer' | null>(null);
   const { etat, etatQuizz, debloquerPalierSuivant, examensRestants } = useEtat();
   const { demarrerSession } = useQuiz();
   const {
@@ -93,16 +98,20 @@ export default function AccueilQuizzRoute() {
         onDetail={() =>
           detailDebloque
             ? router.push({ pathname: '/[quizz]/themes', params: { quizz } })
-            : setPubPalierEnAttente(true)
+            : setIntentionPubPalier('detail')
         }
-        onDebloquer={() => setPubPalierEnAttente(true)}
+        onDebloquer={() => setIntentionPubPalier('debloquer')}
         onRetour={() => router.back()}
       />
       <PubRecompensee
         unite={UNITE_PUB_PALIER}
-        visible={pubPalierEnAttente}
+        visible={intentionPubPalier !== null}
         titre="Débloquer la suite"
-        description="Regardez une publicité pour débloquer le palier suivant et de nouvelles questions."
+        description={
+          intentionPubPalier === 'detail'
+            ? 'Regardez une publicité pour progresser vers la révision en détail.'
+            : 'Regardez une publicité pour débloquer le palier suivant et de nouvelles questions.'
+        }
         onVisionnee={() => {
           if (palier < palierMax) {
             logPubPalierVisionnee({ palierAvant: palier, palierApres: palier + 1 });
@@ -110,9 +119,17 @@ export default function AccueilQuizzRoute() {
         }}
         onTermine={() => {
           debloquerPalierSuivant(quizz, palierMax, seuilDeblocageTheme);
-          setPubPalierEnAttente(false);
+          // Le palier n'est pas encore reflété dans `palier` à ce rendu-ci (la mise à jour de
+          // l'état est asynchrone) : on calcule la valeur qu'il aura pour décider s'il faut
+          // enchaîner vers le détail, plutôt que de se fier à une valeur qui n'a pas bougé.
+          const palierApres = Math.min(palier + 1, palierMax);
+          const detailDebloqueApres = etat.premium || palierApres >= seuilTheme;
+          if (intentionPubPalier === 'detail' && detailDebloqueApres) {
+            router.push({ pathname: '/[quizz]/themes', params: { quizz } });
+          }
+          setIntentionPubPalier(null);
         }}
-        onAnnuler={() => setPubPalierEnAttente(false)}
+        onAnnuler={() => setIntentionPubPalier(null)}
       />
       <PubRecompensee
         unite={UNITE_PUB_EXAMEN}

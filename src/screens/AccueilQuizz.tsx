@@ -63,7 +63,7 @@ export default function AccueilQuizz({
       ]}
     >
       <TouchableOpacity onPress={onRetour} hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}>
-        <Text style={styles.retour}>← Choisir un autre quizz</Text>
+        <Text style={styles.retour}>← Revenir au menu de sélection des examens</Text>
       </TouchableOpacity>
 
       <View style={[styles.pastille, { backgroundColor: couleur }]} />
