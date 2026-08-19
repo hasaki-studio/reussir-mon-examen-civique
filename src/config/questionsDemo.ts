@@ -14,7 +14,7 @@
 import { Question } from '../../services/firebase';
 
 /** Mettre à false pour lire Firestore même en développement. */
-const ACTIVER_DEMO = true;
+const ACTIVER_DEMO = false;
 
 export const QUESTIONS_DEMO_ACTIVES = __DEV__ && ACTIVER_DEMO;
 
