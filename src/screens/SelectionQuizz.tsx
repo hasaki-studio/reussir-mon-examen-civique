@@ -88,7 +88,11 @@ export default function SelectionQuizz({
             style={styles.carte}
             onPress={() => onChoisirQuizz(ligne.cle)}
           >
-            <View style={[styles.pastille, { backgroundColor: ligne.couleur }]} />
+            {/* Badge coloré repris du prototype : le nom du quizz en capsule, dans la couleur
+                du quizz, avant le titre en toutes lettres. */}
+            <View style={[styles.badge, { backgroundColor: ligne.couleur }]}>
+              <Text style={styles.badgeTexte}>{ligne.nom}</Text>
+            </View>
             <Text style={styles.carteNom}>{ligne.nom}</Text>
             <Text style={styles.carteSousTitre}>{ligne.sousTitre}</Text>
             <View style={styles.barre}>
@@ -155,7 +159,8 @@ const styles = StyleSheet.create({
   titre: { fontSize: 25, lineHeight: 31, fontFamily: polices.titreGras, color: couleurs.bleuNuit },
   sousTitre: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 6, marginBottom: 18 },
   carte: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 14, padding: 18, marginBottom: 14, backgroundColor: couleurs.papier },
-  pastille: { width: 30, height: 4, borderRadius: 2, marginBottom: 10 },
+  badge: { alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 9, borderRadius: 20, marginBottom: 10 },
+  badgeTexte: { fontSize: 10.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.papier, fontFamily: polices.texteSemiGras },
   carteNom: { fontSize: 17, fontFamily: polices.titre, color: couleurs.bleuNuit },
   carteSousTitre: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 4 },
   barre: { height: 5, backgroundColor: couleurs.ligne, borderRadius: 4, marginTop: 12, overflow: 'hidden' },
