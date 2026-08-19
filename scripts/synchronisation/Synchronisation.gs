@@ -268,8 +268,11 @@ function analyserOnglet(nomFeuille, contexte) {
         message: 'Identifiant déjà utilisé — onglet « ' + premier.feuille + ' », ligne ' +
           premier.ligne + '. Une question en écraserait une autre.',
       });
-    } else if (!/^[a-z]{2,4}-\d{3,}$/.test(id)) {
-      avertissements.push({ feuille: nomFeuille, ligne: numero, champ: 'id', message: 'Format inhabituel (attendu : csp-0001).' });
+    } else if (!/^[a-z]{2,4}-\d+$/.test(id)) {
+      // Un seul chiffre minimum, sans exiger de zéros de tête : csp-2 est aussi valable que
+      // csp-0002. Seule l'unicité importe pour Firestore ; le format n'est qu'une convention
+      // de lecture, à ne pas transformer en contrainte de rédaction.
+      avertissements.push({ feuille: nomFeuille, ligne: numero, champ: 'id', message: 'Format inhabituel (attendu : csp-2 ou csp-0002).' });
     }
     if (id) identifiantsVus[id] = { feuille: nomFeuille, ligne: numero };
 
