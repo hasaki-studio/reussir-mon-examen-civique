@@ -88,7 +88,9 @@ export default function AccueilQuizz({
       </View>
 
       <TouchableOpacity style={styles.carteExamen} onPress={onExamen}>
-        <Text style={styles.carteExamenTitre}>Examen blanc</Text>
+        <Text style={styles.carteExamenTitre}>
+          <Text style={styles.emoji}>📝</Text> Examen blanc
+        </Text>
         <Text style={styles.carteExamenSous}>
           {nbQuestionsExamen} questions dont {nbSituationsExamen} mise
           {nbSituationsExamen > 1 ? 's' : ''} en situation, conditions réelles, {seuilExamen}{' '}
