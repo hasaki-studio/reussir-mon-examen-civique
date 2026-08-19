@@ -93,7 +93,7 @@ export default function ThemesRoute() {
         themeDebloque={themeDebloque}
         onSelectionnerTheme={(theme) => ouvrirListeDetail({ titre: theme, theme })}
         onSelectionnerPalier={(numero) =>
-          ouvrirListeDetail({ titre: `Palier ${numero}`, palier: numero })
+          ouvrirListeDetail({ titre: `Niveau ${numero}`, palier: numero })
         }
         onRetour={() => router.back()}
       />
@@ -101,7 +101,7 @@ export default function ThemesRoute() {
         unite={UNITE_PUB_SESSION_DETAIL}
         visible={pubSessionEnAttente !== null}
         titre="Continuer la révision détaillée"
-        description="Vous avez déjà utilisé votre session gratuite du jour. Regardez une publicité pour continuer à réviser par thème ou par palier aujourd'hui."
+        description="Vous avez déjà utilisé votre session gratuite du jour. Regardez une publicité pour continuer à réviser par thème ou par niveau aujourd'hui."
         onVisionnee={() => {
           if (pubSessionEnAttente) logPubSessionDetailVisionnee(modeEtValeur(pubSessionEnAttente));
         }}

@@ -58,14 +58,14 @@ export default function ThemesDetail({
           onPress={() => setMode('palier')}
         >
           <Text style={[styles.toggleTexte, mode === 'palier' && styles.toggleTexteActif]}>
-            Par palier
+            Par niveau
           </Text>
         </TouchableOpacity>
       </View>
 
       {!themeDebloque && (
         <Text style={styles.avertissement}>
-          Le mode par thème se débloquera à un palier plus avancé, ou avec Premium.
+          Le mode par thème se débloquera à un niveau plus avancé, ou avec Premium.
         </Text>
       )}
 
@@ -100,7 +100,7 @@ export default function ThemesDetail({
               >
                 <View style={styles.carteTexteZone}>
                   <Text style={[styles.carteTexte, verrouille && styles.carteTexteVerrouille]}>
-                    Palier {palier.numero}
+                    Niveau {palier.numero}
                   </Text>
                   <Text style={styles.carteCompteur}>
                     {palier.nb} question{palier.nb > 1 ? 's' : ''}

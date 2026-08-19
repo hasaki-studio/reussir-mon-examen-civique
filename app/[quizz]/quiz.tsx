@@ -13,7 +13,7 @@ function libelleMode(mode: ModeSession, valeur: string | number | undefined): st
     case 'theme':
       return `Thème · ${valeur}`;
     case 'palier':
-      return `Palier ${valeur}`;
+      return `Niveau ${valeur}`;
     default:
       return 'Mode révision';
   }

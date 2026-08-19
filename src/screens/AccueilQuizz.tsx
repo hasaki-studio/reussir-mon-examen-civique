@@ -83,7 +83,7 @@ export default function AccueilQuizz({
             ? 'Premium actif — tout est débloqué, mises à jour incluses'
             : palier >= palierMax
             ? 'Toutes les questions sont débloquées'
-            : `Palier ${palier} sur ${palierMax}`}
+            : `Niveau ${palier} sur ${palierMax}`}
         </Text>
       </View>
 
@@ -120,8 +120,8 @@ export default function AccueilQuizz({
         </Text>
         <Text style={styles.sousTexte}>
           {detailDebloque
-            ? 'Questions organisées par thème ou par palier'
-            : `Questions organisées par thème ou par palier (à partir du palier ${seuilTheme})`}
+            ? 'Questions organisées par thème ou par niveau'
+            : `Questions organisées par thème ou par niveau (à partir du niveau ${seuilTheme})`}
         </Text>
       </TouchableOpacity>
 
@@ -129,7 +129,7 @@ export default function AccueilQuizz({
         <TouchableOpacity style={styles.bouton} onPress={onDebloquer}>
           <Text style={styles.boutonTexte}>Débloquer plus de questions</Text>
           <Text style={styles.sousTexte}>
-            Regarder une publicité pour débloquer le palier suivant
+            Regarder une publicité pour débloquer le niveau suivant
           </Text>
         </TouchableOpacity>
       )}

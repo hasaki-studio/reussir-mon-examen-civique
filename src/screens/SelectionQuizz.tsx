@@ -103,7 +103,7 @@ export default function SelectionQuizz({
             <Text style={styles.carteMeta}>
               {premium
                 ? `Premium actif — ${ligne.total} question${ligne.total > 1 ? 's' : ''}`
-                : `Palier ${ligne.palier}/${ligne.palierMax} · ${ligne.debloquees}/${ligne.total} question${ligne.total > 1 ? 's' : ''} débloquée${ligne.debloquees > 1 ? 's' : ''}`}
+                : `Niveau ${ligne.palier}/${ligne.palierMax} · ${ligne.debloquees}/${ligne.total} question${ligne.total > 1 ? 's' : ''} débloquée${ligne.debloquees > 1 ? 's' : ''}`}
             </Text>
           </TouchableOpacity>
         );
