@@ -13,7 +13,7 @@ Le dépôt était une copie de « Mon Entretien : Naturalisation » à son état
 | 0 — Couper les liens avec Nat | **Fait côté dépôt.** Les actions en console restent à faire (§ 0.3) |
 | 1 — Modèle QCM et trois quizz | **Fait** |
 | 2 — Mode examen blanc | **Fait** |
-| 3 — Contenu | À faire — chemin critique. Format proposé : [`docs/feuille-questions.md`](docs/feuille-questions.md) |
+| 3 — Contenu | **Démarré.** 80 questions rédigées sur ~500 (paliers 1-2 des trois quizz, palier 3 amorcé), dans [`docs/feuille-questions-brouillon.csv`](docs/feuille-questions-brouillon.csv) — brouillon à relire avant import dans la feuille Google. 12 mises en situation sur les 36 requises (12 par quizz). Le thème « Livret du citoyen 2026 » n'est pas encore couvert : à écrire une fois son contenu officiel confirmé. Format : [`docs/feuille-questions.md`](docs/feuille-questions.md) |
 | 4 — Légal et conformité | À faire |
 | 5 — Code croisé, iOS | Reporté |
 
