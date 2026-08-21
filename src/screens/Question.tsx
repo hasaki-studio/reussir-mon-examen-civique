@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { couleurs, couleurTheme } from '../theme/colors';
 import { polices } from '../theme/typographie';
@@ -45,8 +46,16 @@ export default function EcranQuestion({
   const repondu = reponse !== undefined;
   const correction = repondu && correctionImmediate;
 
+  // Sélection provisoire, avant validation : on peut changer d'avis en touchant une autre
+  // proposition, tant que « Valider ma réponse » n'a pas été pressé. Remise à zéro à chaque
+  // nouvelle question, sans quoi le choix de la précédente resterait affiché sur la suivante.
+  const [selection, setSelection] = useState<number | null>(null);
+  useEffect(() => {
+    setSelection(null);
+  }, [question.id]);
+
   const styleChoix = (index: number) => {
-    if (!repondu) return null;
+    if (!repondu) return index === selection ? styles.choixSelectionne : null;
     if (!correction) return index === reponse.choisi ? styles.choixSelectionne : null;
     if (index === question.bonne) return styles.choixCorrect;
     if (index === reponse.choisi) return styles.choixIncorrect;
@@ -96,12 +105,29 @@ export default function EcranQuestion({
             <TouchableOpacity
               key={index}
               style={[styles.choix, styleChoix(index)]}
-              onPress={() => onRepondre(index)}
+              onPress={() => setSelection(index)}
               disabled={repondu}
             >
               <Text style={[styles.choixTexte, styleChoixTexte(index)]}>{choix}</Text>
             </TouchableOpacity>
           ))}
+
+          {!repondu && (
+            <TouchableOpacity
+              style={[styles.boutonValider, selection === null && styles.boutonValiderDesactive]}
+              onPress={() => selection !== null && onRepondre(selection)}
+              disabled={selection === null}
+            >
+              <Text
+                style={[
+                  styles.boutonValiderTexte,
+                  selection === null && styles.boutonValiderTexteDesactive,
+                ]}
+              >
+                Valider ma réponse
+              </Text>
+            </TouchableOpacity>
+          )}
 
           {correction && (
             <View style={styles.explication}>
@@ -162,6 +188,10 @@ const styles = StyleSheet.create({
   choixTexte: { fontSize: 14.5, fontFamily: polices.texte, color: couleurs.bleuNuit, lineHeight: 20 },
   choixTexteCorrect: { color: couleurs.ok, fontFamily: polices.texteSemiGras },
   choixTexteIncorrect: { color: couleurs.rouge, fontFamily: polices.texteSemiGras },
+  boutonValider: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
+  boutonValiderDesactive: { backgroundColor: couleurs.ligne },
+  boutonValiderTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, letterSpacing: 0.3 },
+  boutonValiderTexteDesactive: { color: couleurs.ardoise },
   explication: { backgroundColor: 'rgba(28,43,73,0.04)', borderLeftWidth: 3, borderLeftColor: couleurs.or, borderRadius: 8, padding: 14, marginTop: 8 },
   explicationTexte: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 20 },
   navigation: { flexDirection: 'row', gap: 10, marginTop: 18 },
