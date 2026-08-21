@@ -46,16 +46,34 @@ export default function EcranQuestion({
   const repondu = reponse !== undefined;
   const correction = repondu && correctionImmediate;
 
-  // Sélection provisoire, avant validation : on peut changer d'avis en touchant une autre
-  // proposition, tant que « Valider ma réponse » n'a pas été pressé. Remise à zéro à chaque
-  // nouvelle question, sans quoi le choix de la précédente resterait affiché sur la suivante.
+  // En révision, la correction s'affiche dès la réponse : le premier appui reste donc immédiat,
+  // comme le geste de « dévoiler » une fiche — rien à sélectionner avant.
+  // En examen, rien ne s'affiche avant l'écran de résultat : l'appui ne fait que sélectionner,
+  // modifiable en touchant une autre proposition, et c'est « Question suivante » qui valide ce
+  // choix en même temps qu'il avance. Remis à zéro à chaque nouvelle question.
   const [selection, setSelection] = useState<number | null>(null);
   useEffect(() => {
     setSelection(null);
   }, [question.id]);
 
+  const peutAvancer = correctionImmediate ? repondu : selection !== null;
+
+  const choisir = (index: number) => {
+    if (repondu) return;
+    if (correctionImmediate) onRepondre(index);
+    else setSelection(index);
+  };
+
+  const avancer = () => {
+    if (!correctionImmediate && selection !== null && !repondu) onRepondre(selection);
+    onSuivant();
+  };
+
   const styleChoix = (index: number) => {
-    if (!repondu) return index === selection ? styles.choixSelectionne : null;
+    if (!repondu) {
+      if (correctionImmediate) return null;
+      return index === selection ? styles.choixSelectionne : null;
+    }
     if (!correction) return index === reponse.choisi ? styles.choixSelectionne : null;
     if (index === question.bonne) return styles.choixCorrect;
     if (index === reponse.choisi) return styles.choixIncorrect;
@@ -105,29 +123,12 @@ export default function EcranQuestion({
             <TouchableOpacity
               key={index}
               style={[styles.choix, styleChoix(index)]}
-              onPress={() => setSelection(index)}
+              onPress={() => choisir(index)}
               disabled={repondu}
             >
               <Text style={[styles.choixTexte, styleChoixTexte(index)]}>{choix}</Text>
             </TouchableOpacity>
           ))}
-
-          {!repondu && (
-            <TouchableOpacity
-              style={[styles.boutonValider, selection === null && styles.boutonValiderDesactive]}
-              onPress={() => selection !== null && onRepondre(selection)}
-              disabled={selection === null}
-            >
-              <Text
-                style={[
-                  styles.boutonValiderTexte,
-                  selection === null && styles.boutonValiderTexteDesactive,
-                ]}
-              >
-                Valider ma réponse
-              </Text>
-            </TouchableOpacity>
-          )}
 
           {correction && (
             <View style={styles.explication}>
@@ -142,17 +143,20 @@ export default function EcranQuestion({
               <Text style={styles.boutonPrecedentTexte}>← Précédente</Text>
             </TouchableOpacity>
           )}
-          {/* Toujours affiché, grisé tant qu'on n'a pas répondu : un bouton entièrement absent
-              se lit comme une erreur, surtout en entrant directement sur une question via la
-              liste détaillée. Le blocage reste réel — `disabled` — ce qui change n'est que sa
-              visibilité. Avancer suppose d'avoir répondu : sans cela, en examen, on pourrait
-              sauter les questions difficiles et obtenir un score qui ne veut rien dire. */}
+          {/* Toujours affiché, grisé tant qu'on ne peut pas avancer : un bouton entièrement
+              absent se lit comme une erreur, surtout en entrant directement sur une question
+              via la liste détaillée. Le blocage reste réel — `disabled` — ce qui change n'est
+              que sa visibilité. En révision, avancer suppose d'avoir répondu (la correction
+              vient de s'afficher) ; en examen, suppose d'avoir sélectionné une proposition —
+              c'est cet appui qui la valide et fait avancer dans le même geste. */}
           <TouchableOpacity
-            style={[styles.boutonSuivant, !repondu && styles.boutonSuivantDesactive]}
-            onPress={onSuivant}
-            disabled={!repondu}
+            style={[styles.boutonSuivant, !peutAvancer && styles.boutonSuivantDesactive]}
+            onPress={avancer}
+            disabled={!peutAvancer}
           >
-            <Text style={[styles.boutonSuivantTexte, !repondu && styles.boutonSuivantTexteDesactive]}>
+            <Text
+              style={[styles.boutonSuivantTexte, !peutAvancer && styles.boutonSuivantTexteDesactive]}
+            >
               {estDerniere
                 ? correctionImmediate
                   ? 'Terminer la révision'
@@ -188,10 +192,6 @@ const styles = StyleSheet.create({
   choixTexte: { fontSize: 14.5, fontFamily: polices.texte, color: couleurs.bleuNuit, lineHeight: 20 },
   choixTexteCorrect: { color: couleurs.ok, fontFamily: polices.texteSemiGras },
   choixTexteIncorrect: { color: couleurs.rouge, fontFamily: polices.texteSemiGras },
-  boutonValider: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 4 },
-  boutonValiderDesactive: { backgroundColor: couleurs.ligne },
-  boutonValiderTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, letterSpacing: 0.3 },
-  boutonValiderTexteDesactive: { color: couleurs.ardoise },
   explication: { backgroundColor: 'rgba(28,43,73,0.04)', borderLeftWidth: 3, borderLeftColor: couleurs.or, borderRadius: 8, padding: 14, marginTop: 8 },
   explicationTexte: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 20 },
   navigation: { flexDirection: 'row', gap: 10, marginTop: 18 },
