@@ -5,12 +5,11 @@ au format QCM et aux trois parcours de Civique. Prêt à recopier dans la Play C
 
 ---
 
-## ⚠️ Deux points bloquants, avant tout le reste
+## ⚠️ Un point réglé, un point qui reste ouvert
 
-**1. `civique.hasakistudio.fr` n'existe pas.** Le domaine ne résout pas (testé le 20/08 :
-`ENOTFOUND`). Or la Play Console exige une URL de confidentialité qui répond, et la revérifie
-périodiquement ensuite. Tant que le site n'est pas en ligne, la fiche ne peut pas être validée
-— c'est le seul élément de cette liste qui arrête tout.
+**1. Le site est en ligne — réglé le 20/08.** `examencivique.hasakistudio.fr` répond, avec
+mentions légales, confidentialité et contact. `src/config/liens.ts` pointe désormais dessus.
+Il reste à saisir l'URL de confidentialité, à l'identique, dans Play Console **et** AdMob.
 
 **2. Le format de l'examen n'est toujours pas recoupé.** 40 questions, dont 12 mises en
 situation, 32 bonnes réponses exigées : ces nombres viennent du prototype, pas de
@@ -173,7 +172,7 @@ résultat d'examen, la vue par thèmes.
 
 | Rubrique | Réponse |
 |---|---|
-| Politique de confidentialité | `https://civique.hasakistudio.fr/confidentialite` — ⚠️ à mettre en ligne d'abord |
+| Politique de confidentialité | `https://examencivique.hasakistudio.fr/confidentialite` |
 | Accès à l'application | Toutes les fonctionnalités sont accessibles sans identifiants |
 | Publicités | **Oui**, l'application contient des publicités |
 | Application gouvernementale | **Non** |
@@ -265,8 +264,7 @@ acheter sans être débité.
 
 ## 8. Avant de publier, dans cet ordre
 
-1. **Mettre `civique.hasakistudio.fr` en ligne** — mentions légales, confidentialité, contact.
-   Rien ne se valide sans ça.
+1. ~~Mettre le site légal en ligne~~ — fait (`examencivique.hasakistudio.fr`).
 2. Créer la fiche Play Console et envoyer l'AAB en test interne.
 3. Récupérer le SHA-256 dans Configuration → Intégrité de l'application, et l'ajouter dans
    Firebase (l'empreinte de la clé d'upload y est déjà ; celle de la clé de distribution

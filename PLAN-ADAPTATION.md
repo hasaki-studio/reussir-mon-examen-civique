@@ -89,7 +89,7 @@ Ce lot touche `app.json`, donc impose un `expo prebuild --clean` et une compilat
 - `MESSAGE_ACCUEIL_HORS_LIGNE` : « Fiches débloquées disponibles hors connexion » → parler de *questions*, pas de *fiches*, dans toute l'application.
 
 **`src/config/liens.ts`** :
-- `URL_CONFIDENTIALITE`, `URL_MENTIONS_LEGALES` → `civique.hasakistudio.fr`.
+- `URL_CONFIDENTIALITE`, `URL_MENTIONS_LEGALES` → `examencivique.hasakistudio.fr` (site en ligne depuis le 20/08).
 - Les cinq liens officiels sont orientés naturalisation. Civique couvre aussi CSP et carte de résident : la liste est à revoir au lot 4, avec les fiches service-public.fr correspondantes. Le mécanisme existant — une entrée vide rend la carte non cliquable — permet d'en désactiver une sans la supprimer, en attendant vérification.
 
 **`src/services/analytics.ts`** :
@@ -252,7 +252,7 @@ Le chemin critique, indépendant de tout le reste.
 
 - `src/screens/MentionsLegales.tsx` : couvrir CSP, carte de résident **et** naturalisation. Éditeur personne physique avec domicile et téléphone, données personnelles, analytics, publicité, achats et rétractation, propriété intellectuelle. Ne pas écrire « micro-entreprise » avant immatriculation.
 - `src/screens/ConseilsRevision.tsx` (525 lignes, entièrement orienté entretien de naturalisation) : réécriture éditoriale. Le format QCM change la nature des conseils — réviser pour un QCM n'a rien à voir avec préparer un entretien oral.
-- Site `civique.hasakistudio.fr` : mentions, confidentialité, contact. URL de confidentialité saisie à l'identique dans Play Console **et** AdMob.
+- Site `examencivique.hasakistudio.fr` : **en ligne** (mentions, confidentialité, contact). URL de confidentialité à saisir à l'identique dans Play Console **et** AdMob.
 
 ---
 

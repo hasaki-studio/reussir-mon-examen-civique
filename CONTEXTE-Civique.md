@@ -90,7 +90,7 @@ Une seule écoute Firestore sert malgré tout les trois quizz : le filtrage se f
 
 **Éditeur.** Achraf AZOUZI, personne physique, `contact@hasakistudio.fr`. Ne pas écrire « micro-entreprise » tant que l'immatriculation n'a pas eu lieu.
 
-**Pages légales.** `civique.hasakistudio.fr` — mentions légales, confidentialité, contact. L'URL de confidentialité est exigée à deux endroits, Play Console et AdMob, et Google la revérifie périodiquement : elle ne doit pas bouger sans mise à jour simultanée des deux consoles.
+**Pages légales.** `examencivique.hasakistudio.fr` — mentions légales, confidentialité, contact, **en ligne depuis le 20/08**. L'URL de confidentialité est exigée à deux endroits, Play Console et AdMob, et Google la revérifie périodiquement : elle ne doit pas bouger sans mise à jour simultanée des deux consoles.
 
 **Identifiants publicitaires de test jusqu'à la publication.** Un clic sur une vraie annonce depuis un build non publié peut faire bannir le compte AdMob.
 

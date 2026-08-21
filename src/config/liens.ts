@@ -11,8 +11,8 @@
 
 import { Linking } from 'react-native';
 
-export const URL_CONFIDENTIALITE = 'https://civique.hasakistudio.fr/confidentialite';
-export const URL_MENTIONS_LEGALES = 'https://civique.hasakistudio.fr/mentions-legales';
+export const URL_CONFIDENTIALITE = 'https://examencivique.hasakistudio.fr/confidentialite';
+export const URL_MENTIONS_LEGALES = 'https://examencivique.hasakistudio.fr/mentions-legales';
 
 // ⚠️ Liens officiels de l'écran Conseils. Les adresses des sites publics changent
 // régulièrement : un lien mort vers le Livret du citoyen décrédibilise plus qu'il n'aide.
