@@ -109,7 +109,7 @@ export default function AccueilQuizz({
         {/* Emoji isole dans sa propre police (non graisse) : accole a une police
             semi-grasse personnalisee, l'emoji se rend en gris delave sur iOS. */}
         <Text style={styles.boutonTexte}>
-          <Text style={styles.emoji}>⚡</Text> Mode révision
+          <Text style={styles.emoji}>⚡</Text> Révision express
         </Text>
         <Text style={styles.sousTexte}>15 questions au hasard, corrigées au fur et à mesure</Text>
       </TouchableOpacity>

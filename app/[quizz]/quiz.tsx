@@ -15,7 +15,7 @@ function libelleMode(mode: ModeSession, valeur: string | number | undefined): st
     case 'palier':
       return `Niveau ${valeur}`;
     default:
-      return 'Mode révision';
+      return 'Révision express';
   }
 }
 
