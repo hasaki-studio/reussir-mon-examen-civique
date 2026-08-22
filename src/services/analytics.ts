@@ -120,6 +120,10 @@ export function logPubExamenVisionnee() {
   log('pub_examen_visionnee');
 }
 
+export function logPubResultatVisionnee() {
+  log('pub_resultat_visionnee');
+}
+
 export function logPubPalierVisionnee(params: { palierAvant: number; palierApres: number }) {
   log('pub_palier_visionnee', { palier_avant: params.palierAvant, palier_apres: params.palierApres });
 }

@@ -36,16 +36,20 @@ export const UNITE_PUB_BANNIERE = TestIds.ADAPTIVE_BANNER;
 // ⚙️ Emplacements des publicités avec récompense — format distinct du bandeau :
 // l'utilisateur regarde volontairement une annonce en échange d'un contenu.
 //
-// Trois unités séparées plutôt qu'une seule, alors qu'elles pointent aujourd'hui vers le même
+// Unités séparées plutôt qu'une seule, alors qu'elles pointent aujourd'hui vers le même
 // ID de test. Deux raisons : les rapports AdMob sont ventilés par unité, ce qui montrera lequel
-// des trois déblocages rapporte réellement ; et le format se règle par unité, donc l'un d'eux
+// des déblocages rapporte réellement ; et le format se règle par unité, donc l'un d'eux
 // pourra passer en RewardedInterstitial sans toucher aux autres.
-// TODO(monétisation) : créer trois unités distinctes dans la console AdMob et les reporter ici.
+// TODO(monétisation) : créer les unités distinctes dans la console AdMob et les reporter ici.
 export const UNITE_PUB_PALIER = TestIds.REWARDED;
 export const UNITE_PUB_SESSION_DETAIL = TestIds.REWARDED;
 // Examen blanc au-delà du quota du jour : le levier propre à Civique, celui dont on attend le
 // plus. Son unité doit rester distincte pour qu'AdMob dise ce qu'il rapporte réellement.
 export const UNITE_PUB_EXAMEN = TestIds.REWARDED;
+// Dévoiler le résultat d'un examen déjà passé — quota d'examens et déblocage du résultat sont
+// deux leviers distincts : le premier limite le nombre d'examens par jour, le second monétise
+// chaque examen déjà passé, y compris ceux du quota gratuit.
+export const UNITE_PUB_RESULTAT_EXAMEN = TestIds.REWARDED;
 
 // Format le plus compact du catalogue standard : 320×50 dp, hauteur fixe et prévisible.
 // Choisi pour préserver la place laissée à la question, qui est le contenu de l'écran.

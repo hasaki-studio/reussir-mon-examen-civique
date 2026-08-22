@@ -11,6 +11,13 @@ interface Props {
   seuil: number;
   reussi: boolean;
   ratees: QuestionRatee[];
+  /**
+   * Vrai tant que le résultat n'a pas été dévoilé (publicité avec récompense non encore
+   * regardée). Le score reste calculé et enregistré dans tous les cas — seul son affichage
+   * attend le geste. Toujours faux en Premium : `onDevoiler` n'est alors jamais appelé.
+   */
+  verrouille: boolean;
+  onDevoiler: () => void;
   onRecommencer: () => void;
   onRetour: () => void;
 }
@@ -21,10 +28,38 @@ export default function ResultatExamen({
   seuil,
   reussi,
   ratees,
+  verrouille,
+  onDevoiler,
   onRecommencer,
   onRetour,
 }: Props) {
   const pourcentage = total === 0 ? 0 : Math.round((score / total) * 100);
+
+  if (verrouille) {
+    return (
+      <ScrollView style={styles.container} contentContainerStyle={styles.contenu}>
+        <TouchableOpacity onPress={onRetour} hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}>
+          <Text style={styles.retour}>← Retour</Text>
+        </TouchableOpacity>
+        <Text style={styles.titre}>Examen terminé</Text>
+
+        <View style={styles.verrou}>
+          <Text style={styles.verrouEmoji}>🔒</Text>
+          <Text style={styles.verrouTexte}>
+            Votre résultat est prêt. Regardez une courte publicité pour le découvrir, avec le
+            détail de vos erreurs.
+          </Text>
+        </View>
+
+        <TouchableOpacity style={styles.boutonPrincipal} onPress={onDevoiler}>
+          <Text style={styles.boutonPrincipalTexte}>Voir mon résultat</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.boutonSecondaire} onPress={onRetour}>
+          <Text style={styles.boutonSecondaireTexte}>Revenir au quizz</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contenu}>
@@ -81,6 +116,9 @@ const styles = StyleSheet.create({
   contenu: { padding: 24, paddingTop: 60, paddingBottom: 40 },
   retour: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, marginBottom: 12 },
   titre: { fontSize: 22, fontFamily: polices.titre, color: couleurs.bleuNuit, marginBottom: 20 },
+  verrou: { alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: couleurs.ligne, backgroundColor: couleurs.blancCasse, paddingVertical: 34, paddingHorizontal: 24, marginBottom: 24 },
+  verrouEmoji: { fontSize: 32, marginBottom: 14 },
+  verrouTexte: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', lineHeight: 20 },
   badge: { alignItems: 'center', borderRadius: 16, borderWidth: 1, paddingVertical: 30, paddingHorizontal: 20, marginBottom: 24 },
   badgeReussi: { backgroundColor: 'rgba(62,107,79,0.08)', borderColor: couleurs.ok },
   badgeEchoue: { backgroundColor: 'rgba(166,43,43,0.06)', borderColor: couleurs.rouge },

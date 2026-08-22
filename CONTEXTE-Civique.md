@@ -24,7 +24,7 @@ Les quatre points laissés ouverts par la version du 12 août sont tranchés.
 |---|---|---|
 | **Projet Firebase** | **Séparé** de `nat-sheet` | Nouvelle console, nouveau `google-services.json`, nouvelle configuration App Check, second script de synchronisation, second jeu de règles. Isolation totale des données et des Analytics. |
 | **Identifiants** | `com.hasakistudio.examencivique` | Package Android et bundle iOS. **Définitif** : c'est la clé de l'application dans Firebase et dans la Play Console. Retenu plutôt que `civique` parce qu'« examen civique » est le terme officiel depuis le 1ᵉʳ janvier 2026, et parce qu'il colle au nom du dépôt. |
-| **Leviers de monétisation** | Déblocage de palier par publicité · Premium (achat unique, débloque les trois quizz) · **Quota d'examens blancs** | Trois leviers, dont un propre à Civique. |
+| **Leviers de monétisation** | Déblocage de palier par publicité · Premium (achat unique, débloque les trois quizz) · **Quota d'examens blancs** · **Dévoilement du résultat par publicité** (ajouté le 22/08) | Quatre leviers, dont deux propres à Civique. Le quota limite le nombre d'examens lancés par jour ; le dévoilement, lui, monétise chaque examen déjà passé, y compris ceux du quota gratuit — le score se calcule et s'enregistre dans tous les cas, seul son affichage attend la publicité. Jamais activé en Premium. |
 | **Réponses bonus (cachet)** | **Abandonné** | Sur un QCM, l'explication de la bonne réponse est le contenu pédagogique lui-même : la faire payer viderait le produit de son sens. Tout le mécanisme est à supprimer, pas à désactiver. |
 
 ### Ce que « projet Firebase séparé » coûte, en clair

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Redirect, useRouter } from 'expo-router';
 import { useEtat } from '../../src/state/EtatContext';
 import { useQuiz } from '../../src/state/QuizContext';
@@ -6,19 +6,29 @@ import { useRemoteConfig } from '../../src/state/RemoteConfigContext';
 import { useQuizzRoute } from '../../src/hooks/useQuizzRoute';
 import { useExamenBlanc } from '../../src/hooks/useExamenBlanc';
 import { seuilReussite } from '../../src/config/examen';
-import { logExamenTermine, logPubExamenVisionnee } from '../../src/services/analytics';
+import {
+  logExamenTermine,
+  logPubExamenVisionnee,
+  logPubResultatVisionnee,
+} from '../../src/services/analytics';
 import ResultatExamen, { QuestionRatee } from '../../src/screens/ResultatExamen';
 import PubRecompensee from '../../src/components/PubRecompensee';
-import { UNITE_PUB_EXAMEN } from '../../src/services/ads';
+import { UNITE_PUB_EXAMEN, UNITE_PUB_RESULTAT_EXAMEN } from '../../src/services/ads';
 
 export default function ResultatRoute() {
   const router = useRouter();
   const quizz = useQuizzRoute();
-  const { enregistrerResultatExamen } = useEtat();
+  const { etat, enregistrerResultatExamen } = useEtat();
   const { sessionQuiz, score, terminerSession } = useQuiz();
   const { examenNbQuestions, examenSeuilReussite } = useRemoteConfig();
   // `replace` : l'écran de résultat n'a pas à rester sous l'examen suivant.
   const examen = useExamenBlanc(quizz ?? 'csp', 'replace');
+
+  // Le score, lui, se calcule et s'enregistre dans tous les cas (voir l'effet plus bas) : seul
+  // son affichage attend la publicité. Jamais verrouillé en Premium.
+  const [resultatDevoile, setResultatDevoile] = useState(false);
+  const [pubResultatVisible, setPubResultatVisible] = useState(false);
+  const verrouille = !etat.premium && !resultatDevoile;
 
   const total = sessionQuiz?.liste.length ?? 0;
   const seuil = seuilReussite(total, examenNbQuestions, examenSeuilReussite);
@@ -72,8 +82,22 @@ export default function ResultatRoute() {
         seuil={seuil}
         reussi={reussi}
         ratees={ratees}
+        verrouille={verrouille}
+        onDevoiler={() => setPubResultatVisible(true)}
         onRecommencer={examen.lancerExamen}
         onRetour={retourAuQuizz}
+      />
+      <PubRecompensee
+        unite={UNITE_PUB_RESULTAT_EXAMEN}
+        visible={pubResultatVisible}
+        titre="Voir mon résultat"
+        description="Regardez une publicité pour découvrir votre score et revoir vos erreurs."
+        onVisionnee={logPubResultatVisionnee}
+        onTermine={() => {
+          setResultatDevoile(true);
+          setPubResultatVisible(false);
+        }}
+        onAnnuler={() => setPubResultatVisible(false)}
       />
       <PubRecompensee
         unite={UNITE_PUB_EXAMEN}
