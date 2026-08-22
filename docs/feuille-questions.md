@@ -108,14 +108,13 @@ Deux corollaires : **on ne réutilise jamais l'identifiant d'une question suppri
 
 ## Les thèmes
 
-Six thèmes sont déjà connus du code, avec leur couleur (`src/theme/colors.ts`) :
+Cinq thèmes sont déjà connus du code, avec leur couleur (`src/theme/colors.ts`) :
 
 - Principes et valeurs de la République
 - Système institutionnel et politique
 - Droits et devoirs des citoyens
 - Histoire, géographie et culture
 - Vivre dans la société française
-- Livret du citoyen 2026
 
 ⚠️ La correspondance est exacte, accents et majuscules compris. Un thème mal orthographié ne provoque aucune erreur : la question s'affiche en gris ardoise, le repli silencieux prévu pour les thèmes inconnus. C'est le genre d'écart qu'on ne remarque qu'en production — une liste déroulante dans la feuille (validation des données) le rend impossible. Même remarque pour la colonne `quizz`.
 

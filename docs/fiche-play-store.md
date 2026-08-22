@@ -73,7 +73,7 @@ Examens blancs et révisions pour préparer l'examen civique. Séjour, résident
 
 ## 3. Description longue
 
-*Limite : 4000 caractères. Celle-ci en fait 3 282.*
+*Limite : 4000 caractères. Celle-ci en fait 3 235.*
 
 ```
 Préparez l'examen civique à votre rythme, avec des QCM conçus pour le titre qui vous concerne.
@@ -102,9 +102,9 @@ DES EXPLICATIONS, JAMAIS PAYANTES
 
 Chaque question s'accompagne de l'explication de sa bonne réponse, affichée systématiquement après que vous avez répondu, en révision comme en examen blanc. C'est le contenu pédagogique de l'application : il n'est réservé à personne.
 
-SIX THÈMES
+CINQ THÈMES
 
-Principes et valeurs de la République, système institutionnel et politique, droits et devoirs des citoyens, histoire, géographie et culture, vivre dans la société française, et un thème consacré au Livret du citoyen 2026.
+Principes et valeurs de la République, système institutionnel et politique, droits et devoirs des citoyens, histoire, géographie et culture, vivre dans la société française.
 
 CONÇUE POUR LA VRAIE VIE
 
