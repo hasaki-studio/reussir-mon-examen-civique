@@ -20,15 +20,16 @@ export default function ResultatRoute() {
   const quizz = useQuizzRoute();
   const { etat, enregistrerResultatExamen } = useEtat();
   const { sessionQuiz, score, terminerSession } = useQuiz();
-  const { examenNbQuestions, examenSeuilReussite } = useRemoteConfig();
+  const { examenNbQuestions, examenSeuilReussite, resultatVerrouille } = useRemoteConfig();
   // `replace` : l'écran de résultat n'a pas à rester sous l'examen suivant.
   const examen = useExamenBlanc(quizz ?? 'csp', 'replace');
 
-  // Le score, lui, se calcule et s'enregistre dans tous les cas (voir l'effet plus bas) : seul
-  // son affichage attend la publicité. Jamais verrouillé en Premium.
+  // Le score se calcule et s'enregistre dans tous les cas (voir l'effet plus bas) : seul son
+  // affichage dépend de la clé. Jamais rien de masqué en Premium, ni une fois la pub vue.
   const [resultatDevoile, setResultatDevoile] = useState(false);
   const [pubResultatVisible, setPubResultatVisible] = useState(false);
-  const verrouille = !etat.premium && !resultatDevoile;
+  const masque =
+    etat.premium || resultatDevoile || resultatVerrouille === 'aucun' ? 'rien' : resultatVerrouille;
 
   const total = sessionQuiz?.liste.length ?? 0;
   const seuil = seuilReussite(total, examenNbQuestions, examenSeuilReussite);
@@ -82,7 +83,7 @@ export default function ResultatRoute() {
         seuil={seuil}
         reussi={reussi}
         ratees={ratees}
-        verrouille={verrouille}
+        masque={masque}
         onDevoiler={() => setPubResultatVisible(true)}
         onRecommencer={examen.lancerExamen}
         onRetour={retourAuQuizz}
@@ -90,8 +91,12 @@ export default function ResultatRoute() {
       <PubRecompensee
         unite={UNITE_PUB_RESULTAT_EXAMEN}
         visible={pubResultatVisible}
-        titre="Voir mon résultat"
-        description="Regardez une publicité pour découvrir votre score et revoir vos erreurs."
+        titre={masque === 'tout' ? 'Voir mon résultat' : 'Revoir mes erreurs'}
+        description={
+          masque === 'tout'
+            ? 'Regardez une publicité pour découvrir votre score et revoir vos erreurs.'
+            : 'Regardez une publicité pour voir, question par question, la bonne réponse et son explication.'
+        }
         onVisionnee={logPubResultatVisionnee}
         onTermine={() => {
           setResultatDevoile(true);

@@ -218,6 +218,10 @@ Ce n'est pas de la sur-ingénierie : ces deux nombres ne sont pas vérifiés à 
 
 Troisième clé : `examens_gratuits_par_jour` (levier de monétisation, valeur par défaut 1).
 
+Quatrième clé, ajoutée le 22/08 : `resultat_verrouille` — ce que l'écran de résultat masque derrière une publicité, parmi `aucun` / `revue` / `tout`. Par défaut `revue` : le score et le verdict s'affichent librement, seule la revue question par question attend la pub.
+
+L'arbitrage mérite d'être explicité, parce qu'il est contre-intuitif. `tout` convertit mieux sur le papier — après quarante questions, l'envie de connaître sa note est proche de 100 %. Mais ce qu'il verrouille est la performance que l'utilisateur vient lui-même de produire, sans autre issue que Premium : c'est le scénario classique de l'avis à une étoile. `revue` garde l'essentiel de cette conversion — après un échec, savoir *ce qu'on a raté* est justement ce qui motive — en ne monnayant qu'un ajout pédagogique, pas un dû. La clé permet de trancher sur les chiffres du test fermé (`pub_resultat_visionnee` rapporté à `examen_termine`) plutôt que sur une intuition.
+
 ### 2.2 — Le tirage, et l'arbitrage qu'il impose
 
 L'examen tire N questions **dans tout le corpus du quizz, tous paliers confondus** : l'examen réel ignore la progression de l'utilisateur, un examen blanc limité aux paliers débloqués mentirait sur le format et raterait sa fonction.

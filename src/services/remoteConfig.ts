@@ -10,6 +10,9 @@ import {
   EXAMEN_NB_SITUATIONS_DEFAUT,
   EXAMEN_SEUIL_BONNES_DEFAUT,
   EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
+  RESULTAT_VERROUILLE_DEFAUT,
+  normaliserResultatVerrouille,
+  type ResultatVerrouille,
 } from '../config/examen';
 
 const CLE_SEUIL_DEBLOCAGE_THEME = 'seuil_deblocage_theme_defaut';
@@ -21,6 +24,9 @@ const CLE_EXAMEN_NB_QUESTIONS = 'examen_nb_questions';
 const CLE_EXAMEN_NB_SITUATIONS = 'examen_nb_situations';
 const CLE_EXAMEN_SEUIL_REUSSITE = 'examen_seuil_reussite';
 const CLE_EXAMENS_GRATUITS = 'examens_gratuits_par_jour';
+// Ce que l'écran de résultat verrouille : 'aucun' | 'revue' | 'tout'. Voir config/examen.ts —
+// l'arbitrage se tranchera sur les chiffres du test fermé, sans republier.
+const CLE_RESULTAT_VERROUILLE = 'resultat_verrouille';
 
 export type ValeursRemoteConfig = {
   seuilDeblocageTheme: number;
@@ -31,6 +37,7 @@ export type ValeursRemoteConfig = {
   examenNbSituations: number;
   examenSeuilReussite: number;
   examensGratuitsParJour: number;
+  resultatVerrouille: ResultatVerrouille;
 };
 
 export const VALEURS_PAR_DEFAUT: ValeursRemoteConfig = {
@@ -41,6 +48,7 @@ export const VALEURS_PAR_DEFAUT: ValeursRemoteConfig = {
   examenNbSituations: EXAMEN_NB_SITUATIONS_DEFAUT,
   examenSeuilReussite: EXAMEN_SEUIL_BONNES_DEFAUT,
   examensGratuitsParJour: EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
+  resultatVerrouille: RESULTAT_VERROUILLE_DEFAUT,
 };
 
 export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
@@ -53,6 +61,7 @@ export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
     [CLE_EXAMEN_NB_SITUATIONS]: EXAMEN_NB_SITUATIONS_DEFAUT,
     [CLE_EXAMEN_SEUIL_REUSSITE]: EXAMEN_SEUIL_BONNES_DEFAUT,
     [CLE_EXAMENS_GRATUITS]: EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
+    [CLE_RESULTAT_VERROUILLE]: RESULTAT_VERROUILLE_DEFAUT,
   };
   // En dev, on veut voir l'effet d'un changement de valeur immédiatement (pas d'attente 12h).
   remoteConfig.settings = {
@@ -82,5 +91,8 @@ export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
     examenNbSituations: Math.min(getNumber(remoteConfig, CLE_EXAMEN_NB_SITUATIONS), examenNbQuestions),
     examenSeuilReussite: Math.min(examenSeuilReussite, examenNbQuestions),
     examensGratuitsParJour: getNumber(remoteConfig, CLE_EXAMENS_GRATUITS),
+    // Normalisée plutôt que lue telle quelle : une faute de frappe dans la console ne doit pas
+    // produire un verrouillage arbitraire, mais retomber sur la valeur par défaut.
+    resultatVerrouille: normaliserResultatVerrouille(getString(remoteConfig, CLE_RESULTAT_VERROUILLE)),
   };
 }

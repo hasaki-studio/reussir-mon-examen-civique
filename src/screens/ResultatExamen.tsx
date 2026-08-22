@@ -12,11 +12,15 @@ interface Props {
   reussi: boolean;
   ratees: QuestionRatee[];
   /**
-   * Vrai tant que le résultat n'a pas été dévoilé (publicité avec récompense non encore
-   * regardée). Le score reste calculé et enregistré dans tous les cas — seul son affichage
-   * attend le geste. Toujours faux en Premium : `onDevoiler` n'est alors jamais appelé.
+   * Ce qui reste masqué tant que la publicité n'a pas été regardée :
+   * - `rien`  : tout est visible (Premium, pub déjà vue, ou clé Remote Config à « aucun ») ;
+   * - `revue` : le score et le verdict s'affichent, la revue des erreurs attend ;
+   * - `tout`  : rien n'est visible, score compris.
+   *
+   * Le score est calculé et enregistré dans l'historique dans tous les cas : seul son affichage
+   * dépend de cette valeur.
    */
-  verrouille: boolean;
+  masque: 'rien' | 'revue' | 'tout';
   onDevoiler: () => void;
   onRecommencer: () => void;
   onRetour: () => void;
@@ -28,14 +32,14 @@ export default function ResultatExamen({
   seuil,
   reussi,
   ratees,
-  verrouille,
+  masque,
   onDevoiler,
   onRecommencer,
   onRetour,
 }: Props) {
   const pourcentage = total === 0 ? 0 : Math.round((score / total) * 100);
 
-  if (verrouille) {
+  if (masque === 'tout') {
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.contenu}>
         <TouchableOpacity onPress={onRetour} hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}>
@@ -81,9 +85,22 @@ export default function ResultatExamen({
       </View>
 
       {/* La revue des erreurs est le véritable contenu de cet écran : le score seul n'apprend
-          rien. Chaque question ratée est reprise avec sa bonne réponse et son explication. */}
+          rien. Chaque question ratée est reprise avec sa bonne réponse et son explication.
+          C'est donc elle, et non le score, qui se monnaie : la note appartient à l'utilisateur
+          qui vient de la produire, l'explication de ses erreurs est un ajout. */}
       {ratees.length === 0 ? (
         <Text style={styles.aucuneErreur}>Aucune erreur. Rien à revoir.</Text>
+      ) : masque === 'revue' ? (
+        <View style={styles.verrou}>
+          <Text style={styles.verrouEmoji}>🔒</Text>
+          <Text style={styles.verrouTexte}>
+            {ratees.length} question{ratees.length > 1 ? 's' : ''} à revoir. Regardez une courte
+            publicité pour voir, pour chacune, la bonne réponse et son explication.
+          </Text>
+          <TouchableOpacity style={styles.boutonVerrou} onPress={onDevoiler}>
+            <Text style={styles.boutonPrincipalTexte}>Revoir mes erreurs</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <>
           <Text style={styles.sousTitreListe}>
@@ -119,6 +136,7 @@ const styles = StyleSheet.create({
   verrou: { alignItems: 'center', borderRadius: 16, borderWidth: 1, borderColor: couleurs.ligne, backgroundColor: couleurs.blancCasse, paddingVertical: 34, paddingHorizontal: 24, marginBottom: 24 },
   verrouEmoji: { fontSize: 32, marginBottom: 14 },
   verrouTexte: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', lineHeight: 20 },
+  boutonVerrou: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 22, alignItems: 'center', marginTop: 18 },
   badge: { alignItems: 'center', borderRadius: 16, borderWidth: 1, paddingVertical: 30, paddingHorizontal: 20, marginBottom: 24 },
   badgeReussi: { backgroundColor: 'rgba(62,107,79,0.08)', borderColor: couleurs.ok },
   badgeEchoue: { backgroundColor: 'rgba(166,43,43,0.06)', borderColor: couleurs.rouge },

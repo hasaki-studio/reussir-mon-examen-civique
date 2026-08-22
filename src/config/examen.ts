@@ -27,6 +27,33 @@ export const EXAMEN_NB_SITUATIONS_DEFAUT = 12;
 export const EXAMENS_GRATUITS_PAR_JOUR_DEFAUT = 1;
 
 /**
+ * Ce que l'écran de résultat verrouille derrière une publicité.
+ *
+ * - `aucun`  : tout est affiché librement.
+ * - `revue`  : le score et le verdict s'affichent, la revue question par question attend la pub.
+ * - `tout`   : rien n'est affiché avant la pub, score compris.
+ *
+ * ⚠️ `tout` verrouille la performance que l'utilisateur vient lui-même de produire, sans autre
+ * issue que Premium — le scénario qui attire les avis à une étoile (« j'ai passé l'examen et on
+ * me réclame une pub pour connaître ma note »). `revue` garde l'essentiel de la conversion — après
+ * un échec, savoir *ce qu'on a raté* est ce qui motive — en ne monnayant qu'un ajout pédagogique
+ * réel, pas un dû.
+ *
+ * Pilotable à distance (`resultat_verrouille`) : l'arbitrage se tranchera sur les chiffres du
+ * test fermé (`pub_resultat_visionnee` rapporté à `examen_termine`), pas sur une intuition, et
+ * sans republier.
+ */
+export type ResultatVerrouille = 'aucun' | 'revue' | 'tout';
+
+export const RESULTAT_VERROUILLE_DEFAUT: ResultatVerrouille = 'revue';
+
+/** Écarte une valeur Remote Config mal saisie plutôt que de verrouiller au hasard. */
+export function normaliserResultatVerrouille(valeur: string): ResultatVerrouille {
+  const v = valeur.trim().toLowerCase();
+  return v === 'aucun' || v === 'revue' || v === 'tout' ? v : RESULTAT_VERROUILLE_DEFAUT;
+}
+
+/**
  * Seuil de réussite ramené au nombre de questions réellement posées.
  *
  * Tant que le contenu n'est pas complet, un quizz peut compter moins de 40 questions : le
