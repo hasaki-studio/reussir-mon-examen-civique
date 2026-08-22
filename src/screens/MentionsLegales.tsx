@@ -59,6 +59,12 @@ export default function MentionsLegales({
         Certains traitements techniques et publicitaires sont mis en œuvre, dont plusieurs sont soumis à votre consentement préalable et révocable. Le détail figure dans la politique de confidentialité, qui précise les données traitées, leurs finalités, leurs bases légales, leurs durées de conservation et vos droits.
       </Text>
 
+      <Text style={styles.sectionTitre}>Vos droits</Text>
+      <Text style={styles.paragraphe}>
+        Vous disposez d'un droit d'accès, de rectification et d'effacement des données vous concernant, ainsi que du droit de retirer votre consentement à tout moment. Votre progression, stockée uniquement sur votre appareil, s'efface en désinstallant l'application ou en vidant ses données depuis les réglages de votre téléphone. Pour toute autre demande — notamment l'effacement des données déjà transmises aux régies publicitaires ou à la mesure d'usage — écrivez à{' '}
+        <Text style={styles.gras}>contact@hasakistudio.fr</Text>. Nous y répondons dans un délai d'un mois.
+      </Text>
+
       <Text style={styles.sectionTitre}>Mesure d'usage (Analytics)</Text>
       <Text style={styles.paragraphe}>
         Avec votre consentement, des données d'usage anonymes et agrégées sont collectées à des fins statistiques (ex. : nombre de questions consultées, écrans visités) via Firebase Analytics, sans partage avec des régies publicitaires tierces à des fins de ciblage. Ce recueil est soumis à votre consentement, que vous pouvez donner ou retirer à tout moment ci-dessous.
