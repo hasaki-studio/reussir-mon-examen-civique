@@ -81,7 +81,7 @@ export default function MentionsLegales({
 
       <Text style={styles.sectionTitre}>Publicité</Text>
       <Text style={styles.paragraphe}>
-        L'application peut afficher des publicités fournies par des régies publicitaires tierces (notamment Google AdMob), permettant de débloquer gratuitement certains contenus (fiches, thèmes, réponses bonus) en échange du visionnage d'une annonce. Ces régies peuvent déposer des traceurs sur votre appareil et traiter certaines données (identifiant publicitaire, données techniques de l'appareil) à des fins de diffusion et de mesure de performance des publicités, et le cas échéant de personnalisation. Ces traitements sont soumis à votre consentement, recueilli lors de votre première utilisation de l'application via le formulaire de Google, et vous pouvez revenir sur ce choix à tout moment ci-dessous. L'éditeur de l'application ne vend ni ne transmet aucune donnée personnelle à des fins commerciales en dehors du fonctionnement de ces régies publicitaires.
+        L'application peut afficher des publicités fournies par des régies publicitaires tierces (notamment Google AdMob), permettant de débloquer gratuitement du contenu (nouvelles questions, examens blancs supplémentaires, revue détaillée des résultats) en échange du visionnage d'une annonce. Ces régies peuvent déposer des traceurs sur votre appareil et traiter certaines données (identifiant publicitaire, données techniques de l'appareil) à des fins de diffusion et de mesure de performance des publicités, et le cas échéant de personnalisation. Ces traitements sont soumis à votre consentement, recueilli lors de votre première utilisation de l'application via le formulaire de Google, et vous pouvez revenir sur ce choix à tout moment ci-dessous. L'éditeur de l'application ne vend ni ne transmet aucune donnée personnelle à des fins commerciales en dehors du fonctionnement de ces régies publicitaires.
       </Text>
 
       <TouchableOpacity
@@ -126,7 +126,7 @@ export default function MentionsLegales({
       </Text>
 
       <Text style={styles.paragraphe}>
-        Les contenus issus de sources publiques officielles, notamment le Livret du citoyen, demeurent la propriété de leurs auteurs respectifs et sont reformulés à des fins pédagogiques.
+        Les questions s'appuient sur les sujets fixés par les listes officielles de l'examen civique (carte de séjour pluriannuelle, carte de résident, naturalisation) et sont rédigées spécifiquement pour l'application, à des fins pédagogiques.
       </Text>
 
       <Text style={styles.sectionTitre}>Politique de confidentialité</Text>
