@@ -25,12 +25,7 @@ const TAILLE_SESSION_REVISION = 15;
 export default function AccueilQuizzRoute() {
   const router = useRouter();
   const quizz = useQuizzRoute();
-  // Distingue pourquoi la pub palier a été ouverte : depuis « Débloquer plus de questions »
-  // (aucune suite automatique attendue) ou depuis « Réviser en détail » alors que ce mode est
-  // encore verrouillé — auquel cas regarder la pub sans être emmené vers le détail une fois
-  // débloqué laisserait l'utilisateur revenu exactement là d'où il est parti, sans la moindre
-  // suite visible à son geste.
-  const [intentionPubPalier, setIntentionPubPalier] = useState<'detail' | 'debloquer' | null>(null);
+  const [pubPalierVisible, setPubPalierVisible] = useState(false);
   const { etat, etatQuizz, debloquerPalierSuivant, examensRestants } = useEtat();
   const { demarrerSession } = useQuiz();
   const {
@@ -44,8 +39,6 @@ export default function AccueilQuizzRoute() {
   const examen = useExamenBlanc(quizz ?? 'csp');
 
   const { palier } = etatQuizz(quizz ?? 'csp');
-  const seuilTheme = Math.min(seuilDeblocageTheme, palierMax);
-  const detailDebloque = etat.premium || palier >= seuilTheme;
 
   const debloquees = useMemo(
     () => questionsDebloquees(questions, palier, etat.premium),
@@ -87,31 +80,24 @@ export default function AccueilQuizzRoute() {
         debloquees={debloquees.length}
         total={questions.length}
         premium={etat.premium}
-        detailDebloque={detailDebloque}
-        seuilTheme={seuilTheme}
         nbQuestionsExamen={nbQuestionsExamen}
         nbSituationsExamen={nbSituationsExamen}
         seuilExamen={seuilReussite(nbQuestionsExamen, examenNbQuestions, examenSeuilReussite)}
         examensRestants={examensRestants(quizz, examensGratuitsParJour)}
         onRevision={lancerRevision}
         onExamen={examen.lancerExamen}
-        onDetail={() =>
-          detailDebloque
-            ? router.push({ pathname: '/[quizz]/themes', params: { quizz } })
-            : setIntentionPubPalier('detail')
-        }
-        onDebloquer={() => setIntentionPubPalier('debloquer')}
+        // « Réviser en détail » ouvre toujours l'écran des thèmes/paliers : rien n'y est verrouillé
+        // à l'entrée. C'est là-bas, au moment de choisir un thème ou un niveau précis, que la
+        // session gratuite du jour se consomme et que la pub apparaît si elle est épuisée.
+        onDetail={() => router.push({ pathname: '/[quizz]/themes', params: { quizz } })}
+        onDebloquer={() => setPubPalierVisible(true)}
         onRetour={() => router.back()}
       />
       <PubRecompensee
         unite={UNITE_PUB_PALIER}
-        visible={intentionPubPalier !== null}
+        visible={pubPalierVisible}
         titre="Débloquer la suite"
-        description={
-          intentionPubPalier === 'detail'
-            ? 'Regardez une publicité pour progresser vers la révision en détail.'
-            : 'Regardez une publicité pour débloquer le palier suivant et de nouvelles questions.'
-        }
+        description="Regardez une publicité pour débloquer le palier suivant et de nouvelles questions."
         onVisionnee={() => {
           if (palier < palierMax) {
             logPubPalierVisionnee({ palierAvant: palier, palierApres: palier + 1 });
@@ -119,17 +105,9 @@ export default function AccueilQuizzRoute() {
         }}
         onTermine={() => {
           debloquerPalierSuivant(quizz, palierMax, seuilDeblocageTheme);
-          // Le palier n'est pas encore reflété dans `palier` à ce rendu-ci (la mise à jour de
-          // l'état est asynchrone) : on calcule la valeur qu'il aura pour décider s'il faut
-          // enchaîner vers le détail, plutôt que de se fier à une valeur qui n'a pas bougé.
-          const palierApres = Math.min(palier + 1, palierMax);
-          const detailDebloqueApres = etat.premium || palierApres >= seuilTheme;
-          if (intentionPubPalier === 'detail' && detailDebloqueApres) {
-            router.push({ pathname: '/[quizz]/themes', params: { quizz } });
-          }
-          setIntentionPubPalier(null);
+          setPubPalierVisible(false);
         }}
-        onAnnuler={() => setIntentionPubPalier(null)}
+        onAnnuler={() => setPubPalierVisible(false)}
       />
       <PubRecompensee
         unite={UNITE_PUB_EXAMEN}

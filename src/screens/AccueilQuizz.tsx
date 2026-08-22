@@ -11,8 +11,6 @@ interface Props {
   debloquees: number;
   total: number;
   premium: boolean;
-  detailDebloque: boolean;
-  seuilTheme: number;
   nbQuestionsExamen: number;
   nbSituationsExamen: number;
   seuilExamen: number;
@@ -39,8 +37,6 @@ export default function AccueilQuizz({
   debloquees,
   total,
   premium,
-  detailDebloque,
-  seuilTheme,
   nbQuestionsExamen,
   nbSituationsExamen,
   seuilExamen,
@@ -118,11 +114,7 @@ export default function AccueilQuizz({
         <Text style={styles.boutonTexte}>
           <Text style={styles.emoji}>📚</Text> Réviser en détail
         </Text>
-        <Text style={styles.sousTexte}>
-          {detailDebloque
-            ? 'Questions organisées par thème ou par niveau'
-            : `Questions organisées par thème ou par niveau (à partir du niveau ${seuilTheme})`}
-        </Text>
+        <Text style={styles.sousTexte}>Questions organisées par thème ou par niveau</Text>
       </TouchableOpacity>
 
       {!premium && palier < palierMax && (
