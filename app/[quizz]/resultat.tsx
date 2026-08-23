@@ -18,18 +18,29 @@ import { UNITE_PUB_EXAMEN, UNITE_PUB_RESULTAT_EXAMEN } from '../../src/services/
 export default function ResultatRoute() {
   const router = useRouter();
   const quizz = useQuizzRoute();
-  const { etat, enregistrerResultatExamen } = useEtat();
+  const { etat, enregistrerResultatExamen, revueGratuiteDisponible, consommerRevueGratuite } =
+    useEtat();
   const { sessionQuiz, score, terminerSession } = useQuiz();
-  const { examenNbQuestions, examenSeuilReussite, resultatVerrouille } = useRemoteConfig();
+  const { examenNbQuestions, examenSeuilReussite, resultatVerrouille, revuesGratuitesParJour } =
+    useRemoteConfig();
   // `replace` : l'écran de résultat n'a pas à rester sous l'examen suivant.
   const examen = useExamenBlanc(quizz ?? 'csp', 'replace');
 
+  // Figé à l'arrivée sur l'écran, pas recalculé à chaque rendu : sans quoi le quota se
+  // consommant plus bas verrouillerait l'écran sous les yeux de l'utilisateur en train de le lire.
+  const [revueGratuite] = useState(() =>
+    revueGratuiteDisponible(quizz ?? 'csp', revuesGratuitesParJour)
+  );
+
   // Le score se calcule et s'enregistre dans tous les cas (voir l'effet plus bas) : seul son
-  // affichage dépend de la clé. Jamais rien de masqué en Premium, ni une fois la pub vue.
+  // affichage dépend de la clé. Jamais rien de masqué en Premium, une fois la pub vue, ou tant
+  // que le quota de revues gratuites du jour n'est pas épuisé.
   const [resultatDevoile, setResultatDevoile] = useState(false);
   const [pubResultatVisible, setPubResultatVisible] = useState(false);
   const masque =
-    etat.premium || resultatDevoile || resultatVerrouille === 'aucun' ? 'rien' : resultatVerrouille;
+    etat.premium || resultatDevoile || resultatVerrouille === 'aucun' || revueGratuite
+      ? 'rien'
+      : resultatVerrouille;
 
   const total = sessionQuiz?.liste.length ?? 0;
   const seuil = seuilReussite(total, examenNbQuestions, examenSeuilReussite);
@@ -61,7 +72,21 @@ export default function ResultatRoute() {
       seuil,
       reussi,
     });
-  }, [quizz, sessionQuiz, score, total, seuil, reussi, enregistrerResultatExamen]);
+    // Consomme le quota seulement s'il a effectivement servi à cet examen — un Premium ou un
+    // quota déjà épuisé n'ont rien à décompter.
+    if (!etat.premium && revueGratuite) consommerRevueGratuite(quizz);
+  }, [
+    quizz,
+    sessionQuiz,
+    score,
+    total,
+    seuil,
+    reussi,
+    enregistrerResultatExamen,
+    etat.premium,
+    revueGratuite,
+    consommerRevueGratuite,
+  ]);
 
   if (!quizz) return <Redirect href="/" />;
   // Arrivée sur cette route sans examen terminé (lien direct, relance de l'application) :

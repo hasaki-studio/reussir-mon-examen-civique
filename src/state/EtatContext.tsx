@@ -28,6 +28,9 @@ type EtatQuizz = {
   palier: number;
   sessionsDetailAujourdhui: CompteurJour;
   examensAujourdhui: CompteurJour;
+  // Indépendant d'examensAujourdhui : un examen peut être gratuit sans que sa revue le soit —
+  // voir REVUES_GRATUITES_PAR_JOUR_DEFAUT dans config/examen.ts.
+  revuesAujourdhui: CompteurJour;
   derniersResultats: ResultatExamen[];
 };
 
@@ -47,6 +50,7 @@ function etatQuizzParDefaut(): EtatQuizz {
     palier: 1,
     sessionsDetailAujourdhui: { date: null, count: 0 },
     examensAujourdhui: { date: null, count: 0 },
+    revuesAujourdhui: { date: null, count: 0 },
     derniersResultats: [],
   };
 }
@@ -105,6 +109,9 @@ type EtatContextValue = {
   examenGratuitDisponible: (quizz: Quizz, examensGratuitsParJour: number) => boolean;
   examensRestants: (quizz: Quizz, examensGratuitsParJour: number) => number;
   consommerExamenGratuit: (quizz: Quizz) => void;
+  /** Vrai tant que le quota de revues gratuites du jour n'est pas épuisé. Toujours vrai en Premium. */
+  revueGratuiteDisponible: (quizz: Quizz, revuesGratuitesParJour: number) => boolean;
+  consommerRevueGratuite: (quizz: Quizz) => void;
   enregistrerResultatExamen: (quizz: Quizz, resultat: ResultatExamen) => void;
   reinitialiser: () => void;
 };
@@ -234,6 +241,24 @@ export function EtatProvider({ children }: { children: ReactNode }) {
     [majQuizz]
   );
 
+  const revueGratuiteDisponible = useCallback(
+    (quizz: Quizz, revuesGratuitesParJour: number): boolean => {
+      if (etat.premium) return true;
+      return compteurDuJour(etat.parQuizz[quizz].revuesAujourdhui) < revuesGratuitesParJour;
+    },
+    [etat.premium, etat.parQuizz]
+  );
+
+  const consommerRevueGratuite = useCallback(
+    (quizz: Quizz) => {
+      majQuizz(quizz, (e) => ({
+        ...e,
+        revuesAujourdhui: { date: cleDuJour(), count: compteurDuJour(e.revuesAujourdhui) + 1 },
+      }));
+    },
+    [majQuizz]
+  );
+
   const enregistrerResultatExamen = useCallback(
     (quizz: Quizz, resultat: ResultatExamen) => {
       majQuizz(quizz, (e) => ({
@@ -261,6 +286,8 @@ export function EtatProvider({ children }: { children: ReactNode }) {
       examenGratuitDisponible,
       examensRestants,
       consommerExamenGratuit,
+      revueGratuiteDisponible,
+      consommerRevueGratuite,
       enregistrerResultatExamen,
       reinitialiser,
     }),
@@ -276,6 +303,8 @@ export function EtatProvider({ children }: { children: ReactNode }) {
       examenGratuitDisponible,
       examensRestants,
       consommerExamenGratuit,
+      revueGratuiteDisponible,
+      consommerRevueGratuite,
       enregistrerResultatExamen,
       reinitialiser,
     ]

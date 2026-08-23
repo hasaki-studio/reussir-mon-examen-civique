@@ -47,6 +47,13 @@ export type ResultatVerrouille = 'aucun' | 'revue' | 'tout';
 
 export const RESULTAT_VERROUILLE_DEFAUT: ResultatVerrouille = 'revue';
 
+// ⚙️ Nombre de résultats d'examen affichés librement par jour et par quizz, avant que
+// `resultat_verrouille` ne s'applique. Indépendant du quota d'examens (`examens_gratuits_par_jour`) :
+// un utilisateur peut passer plusieurs examens gratuits dans la journée sans que chacun d'eux
+// donne droit à une revue gratuite — seuls les premiers, à hauteur de cette valeur, en bénéficient.
+// Retour du test fermé (22/08) : les testeurs s'attendaient à une correction gratuite par jour.
+export const REVUES_GRATUITES_PAR_JOUR_DEFAUT = 1;
+
 /** Écarte une valeur Remote Config mal saisie plutôt que de verrouiller au hasard. */
 export function normaliserResultatVerrouille(valeur: string): ResultatVerrouille {
   const v = valeur.trim().toLowerCase();

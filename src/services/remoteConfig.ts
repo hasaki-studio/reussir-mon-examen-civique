@@ -10,6 +10,7 @@ import {
   EXAMEN_NB_SITUATIONS_DEFAUT,
   EXAMEN_SEUIL_BONNES_DEFAUT,
   EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
+  REVUES_GRATUITES_PAR_JOUR_DEFAUT,
   RESULTAT_VERROUILLE_DEFAUT,
   normaliserResultatVerrouille,
   type ResultatVerrouille,
@@ -27,6 +28,9 @@ const CLE_EXAMENS_GRATUITS = 'examens_gratuits_par_jour';
 // Ce que l'écran de résultat verrouille : 'aucun' | 'revue' | 'tout'. Voir config/examen.ts —
 // l'arbitrage se tranchera sur les chiffres du test fermé, sans republier.
 const CLE_RESULTAT_VERROUILLE = 'resultat_verrouille';
+// Indépendant du quota d'examens : nombre de résultats affichés librement par jour avant que
+// resultat_verrouille ne s'applique. Voir config/examen.ts.
+const CLE_REVUES_GRATUITES = 'resultat_revues_gratuites_par_jour';
 
 export type ValeursRemoteConfig = {
   seuilDeblocageTheme: number;
@@ -38,6 +42,7 @@ export type ValeursRemoteConfig = {
   examenSeuilReussite: number;
   examensGratuitsParJour: number;
   resultatVerrouille: ResultatVerrouille;
+  revuesGratuitesParJour: number;
 };
 
 export const VALEURS_PAR_DEFAUT: ValeursRemoteConfig = {
@@ -49,6 +54,7 @@ export const VALEURS_PAR_DEFAUT: ValeursRemoteConfig = {
   examenSeuilReussite: EXAMEN_SEUIL_BONNES_DEFAUT,
   examensGratuitsParJour: EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
   resultatVerrouille: RESULTAT_VERROUILLE_DEFAUT,
+  revuesGratuitesParJour: REVUES_GRATUITES_PAR_JOUR_DEFAUT,
 };
 
 export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
@@ -62,6 +68,7 @@ export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
     [CLE_EXAMEN_SEUIL_REUSSITE]: EXAMEN_SEUIL_BONNES_DEFAUT,
     [CLE_EXAMENS_GRATUITS]: EXAMENS_GRATUITS_PAR_JOUR_DEFAUT,
     [CLE_RESULTAT_VERROUILLE]: RESULTAT_VERROUILLE_DEFAUT,
+    [CLE_REVUES_GRATUITES]: REVUES_GRATUITES_PAR_JOUR_DEFAUT,
   };
   // En dev, on veut voir l'effet d'un changement de valeur immédiatement (pas d'attente 12h).
   remoteConfig.settings = {
@@ -94,5 +101,6 @@ export async function chargerRemoteConfig(): Promise<ValeursRemoteConfig> {
     // Normalisée plutôt que lue telle quelle : une faute de frappe dans la console ne doit pas
     // produire un verrouillage arbitraire, mais retomber sur la valeur par défaut.
     resultatVerrouille: normaliserResultatVerrouille(getString(remoteConfig, CLE_RESULTAT_VERROUILLE)),
+    revuesGratuitesParJour: getNumber(remoteConfig, CLE_REVUES_GRATUITES),
   };
 }
