@@ -52,11 +52,15 @@ export default function AccueilQuizzRoute() {
   // Ce qui sera réellement posé, corpus incomplet compris : annoncer 40 questions dont 12 mises
   // en situation quand la feuille n'en contient pas encore autant décrédibiliserait l'écran dès
   // le premier examen.
-  const nbQuestionsExamen = Math.min(examenNbQuestions, questions.length);
+  //
+  // Calculé sur les questions débloquées, et non sur le corpus entier : c'est là-dedans que
+  // `useExamenBlanc` tire désormais. Compter sur le corpus complet annoncerait un examen que le
+  // palier de l'utilisateur ne permet pas encore de composer.
+  const nbQuestionsExamen = Math.min(examenNbQuestions, debloquees.length);
   const nbSituationsExamen = Math.min(
     examenNbSituations,
     nbQuestionsExamen,
-    questions.filter((q) => q.type === 'situation').length
+    debloquees.filter((q) => q.type === 'situation').length
   );
 
   const lancerRevision = () => {

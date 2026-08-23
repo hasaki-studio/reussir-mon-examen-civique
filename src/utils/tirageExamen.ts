@@ -64,10 +64,13 @@ function tirerParTheme(questions: Question[], nb: number): Question[] {
  * mode révision, où le tirage reste libre — s'entraîner ne demande pas de reproduire le format,
  * se tester si.
  *
- * **Tous paliers confondus.** L'examen réel ignore la progression de l'utilisateur : le limiter
- * aux paliers débloqués mentirait sur la difficulté et lui ferait croire qu'il est prêt.
- * Conséquence assumée : l'examen blanc expose du contenu non encore débloqué. C'est le quota
- * d'examens et le Premium qui font barrière, pas le contenu.
+ * **Dans les seules questions débloquées.** L'appelant (`useExamenBlanc`) filtre le corpus par le
+ * palier de l'utilisateur avant d'appeler cette fonction : réviser un niveau puis s'y tester
+ * porte ainsi sur le même stock, et l'examen n'interroge pas sur ce qu'on n'a pas pu travailler.
+ * Ce choix suppose que chaque palier compte assez de questions, mises en situation comprises,
+ * pour composer un examen varié — c'est la condition qui le rend tenable. Le seuil de réussite
+ * suit : `seuilReussite` le ramène au nombre de questions réellement posées, de sorte qu'un
+ * palier encore maigre ne produit pas un échec systématique.
  *
  * **Chaque forme est tirée en respectant la répartition par thème de son propre corpus**, et
  * non celle du corpus entier : les mises en situation ne couvrent pas forcément les mêmes

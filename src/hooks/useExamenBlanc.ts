@@ -1,10 +1,11 @@
 // src/hooks/useExamenBlanc.ts
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useEtat } from '../state/EtatContext';
 import { useQuiz } from '../state/QuizContext';
 import { useRemoteConfig } from '../state/RemoteConfigContext';
 import { useQuestionsQuizz } from './useQuestionsQuizz';
+import { questionsDebloquees } from '../utils/filtresQuestions';
 import { tirerExamen } from '../utils/tirageExamen';
 import { logExamenDemarre, logExamenQuotaAtteint } from '../services/analytics';
 import type { Quizz } from '../config/quizz';
@@ -21,15 +22,28 @@ import type { Quizz } from '../config/quizz';
  */
 export function useExamenBlanc(quizz: Quizz, naviguer: 'push' | 'replace' = 'push') {
   const router = useRouter();
-  const { etat, examenGratuitDisponible, examensRestants, consommerExamenGratuit } = useEtat();
+  const { etat, etatQuizz, examenGratuitDisponible, examensRestants, consommerExamenGratuit } =
+    useEtat();
   const { examensGratuitsParJour, examenNbQuestions, examenNbSituations } = useRemoteConfig();
   const { questions } = useQuestionsQuizz(quizz);
   const { demarrerSession } = useQuiz();
   const [pubEnAttente, setPubEnAttente] = useState(false);
 
+  const { palier } = etatQuizz(quizz);
+
+  // L'examen blanc ne pioche que dans les questions débloquées : réviser un niveau puis s'y
+  // tester doit porter sur le même stock, sinon l'examen interroge sur ce que l'utilisateur
+  // n'a pas encore pu travailler. Chaque palier compte assez de questions — mises en situation
+  // comprises — pour composer un examen varié. Premium débloque tout, `questionsDebloquees`
+  // s'en charge.
+  const disponibles = useMemo(
+    () => questionsDebloquees(questions, palier, etat.premium),
+    [questions, palier, etat.premium]
+  );
+
   const demarrer = useCallback(
     (gratuit: boolean) => {
-      const liste = tirerExamen(questions, {
+      const liste = tirerExamen(disponibles, {
         nbQuestions: examenNbQuestions,
         nbSituations: examenNbSituations,
       });
@@ -46,7 +60,7 @@ export function useExamenBlanc(quizz: Quizz, naviguer: 'push' | 'replace' = 'pus
       else router.push(cible);
     },
     [
-      questions,
+      disponibles,
       examenNbQuestions,
       examenNbSituations,
       examensRestants,
