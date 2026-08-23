@@ -1,5 +1,6 @@
+import { useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
-import { couleurs } from '../theme/colors';
+import { couleurs, couleurTheme } from '../theme/colors';
 import { polices } from '../theme/typographie';
 import { Question } from '../../services/firebase';
 
@@ -38,6 +39,19 @@ export default function ResultatExamen({
   onRetour,
 }: Props) {
   const pourcentage = total === 0 ? 0 : Math.round((score / total) * 100);
+
+  // Aperçu gratuit de la revue verrouillée : la répartition, jamais le contenu (ni la bonne
+  // réponse, ni l'explication). De quoi donner envie de regarder la publicité sans vider son
+  // intérêt — contrairement à la bonne réponse elle-même, qui reste le vrai motif d'y aller.
+  const repartitionTheme = useMemo(() => {
+    const compte = new Map<string, number>();
+    for (const { question } of ratees) compte.set(question.theme, (compte.get(question.theme) ?? 0) + 1);
+    return [...compte.entries()].sort((a, b) => b[1] - a[1]);
+  }, [ratees]);
+  const nbSituations = useMemo(
+    () => ratees.filter(({ question }) => question.type === 'situation').length,
+    [ratees]
+  );
 
   if (masque === 'tout') {
     return (
@@ -97,6 +111,24 @@ export default function ResultatExamen({
             {ratees.length} question{ratees.length > 1 ? 's' : ''} à revoir. Regardez une courte
             publicité pour voir, pour chacune, la bonne réponse et son explication.
           </Text>
+
+          <View style={styles.repartition}>
+            {repartitionTheme.map(([theme, nb]) => (
+              <View key={theme} style={styles.repartitionLigne}>
+                <View style={[styles.repartitionPuce, { backgroundColor: couleurTheme(theme) }]} />
+                <Text style={styles.repartitionTheme} numberOfLines={1}>
+                  {theme}
+                </Text>
+                <Text style={styles.repartitionNb}>{nb}</Text>
+              </View>
+            ))}
+            {nbSituations > 0 && (
+              <Text style={styles.repartitionSituations}>
+                dont {nbSituations} mise{nbSituations > 1 ? 's' : ''} en situation
+              </Text>
+            )}
+          </View>
+
           <TouchableOpacity style={styles.boutonVerrou} onPress={onDevoiler}>
             <Text style={styles.boutonPrincipalTexte}>Revoir mes erreurs</Text>
           </TouchableOpacity>
@@ -137,6 +169,12 @@ const styles = StyleSheet.create({
   verrouEmoji: { fontSize: 32, marginBottom: 14 },
   verrouTexte: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', lineHeight: 20 },
   boutonVerrou: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 22, alignItems: 'center', marginTop: 18 },
+  repartition: { alignSelf: 'stretch', marginTop: 18, paddingTop: 16, borderTopWidth: 1, borderTopColor: couleurs.ligne },
+  repartitionLigne: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  repartitionPuce: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
+  repartitionTheme: { flex: 1, fontSize: 12.5, fontFamily: polices.texte, color: couleurs.bleuNuit },
+  repartitionNb: { fontSize: 12.5, fontFamily: polices.texteSemiGras, color: couleurs.ardoise, marginLeft: 8 },
+  repartitionSituations: { fontSize: 11.5, fontFamily: polices.texte, color: couleurs.ardoise, fontStyle: 'italic', marginTop: 4 },
   badge: { alignItems: 'center', borderRadius: 16, borderWidth: 1, paddingVertical: 30, paddingHorizontal: 20, marginBottom: 24 },
   badgeReussi: { backgroundColor: 'rgba(62,107,79,0.08)', borderColor: couleurs.ok },
   badgeEchoue: { backgroundColor: 'rgba(166,43,43,0.06)', borderColor: couleurs.rouge },
