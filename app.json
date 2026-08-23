@@ -65,6 +65,12 @@
         }
       ]
     ],
-    "owner": "hasakistudio"
+    "owner": "hasakistudio",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3b1e09d7-3f64-480e-8358-ee5373fd8165"
+      }
+    }
   }
 }
