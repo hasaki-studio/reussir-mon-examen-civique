@@ -13,7 +13,7 @@ import { appliquerConsentementAnalytics } from '../services/analytics';
 
 export type Consentement = 'accepte' | 'refuse';
 
-const STORAGE_KEY_CONSENTEMENT = '@consentement-nat';
+const STORAGE_KEY_CONSENTEMENT = '@consentement-civique';
 
 type ConsentementContextValue = {
   // null tant que l'utilisateur n'a pas fait de choix (premier lancement).
