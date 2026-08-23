@@ -1,10 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { couleurs, couleurTheme } from '../theme/colors';
 import { polices } from '../theme/typographie';
 import { Question } from '../../services/firebase';
 import type { ReponseDonnee } from '../state/QuizContext';
 import BandeauPublicitaire from '../components/BandeauPublicitaire';
+
+// Mélange les indices des propositions (Fisher-Yates) : sans ça, la bonne réponse d'une
+// question donnée est toujours à la même position, mémorisable indépendamment de son contenu.
+function ordreMelange(n: number): number[] {
+  const ordre = Array.from({ length: n }, (_, i) => i);
+  for (let i = ordre.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [ordre[i], ordre[j]] = [ordre[j], ordre[i]];
+  }
+  return ordre;
+}
 
 interface Props {
   question: Question;
@@ -55,6 +66,10 @@ export default function EcranQuestion({
   useEffect(() => {
     setSelection(null);
   }, [question.id]);
+
+  // Recalculé à chaque nouvelle question — les indices restent canoniques (`question.bonne`,
+  // `reponse.choisi`), seul l'ordre d'affichage change.
+  const ordreChoix = useMemo(() => ordreMelange(question.choix.length), [question.id]);
 
   const peutAvancer = correctionImmediate ? repondu : selection !== null;
 
@@ -119,14 +134,14 @@ export default function EcranQuestion({
           </Text>
           <Text style={styles.questionTexte}>{question.question}</Text>
 
-          {question.choix.map((choix, index) => (
+          {ordreChoix.map((index) => (
             <TouchableOpacity
               key={index}
               style={[styles.choix, styleChoix(index)]}
               onPress={() => choisir(index)}
               disabled={repondu}
             >
-              <Text style={[styles.choixTexte, styleChoixTexte(index)]}>{choix}</Text>
+              <Text style={[styles.choixTexte, styleChoixTexte(index)]}>{question.choix[index]}</Text>
             </TouchableOpacity>
           ))}
 
