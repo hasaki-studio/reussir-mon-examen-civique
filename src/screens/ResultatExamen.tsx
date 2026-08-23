@@ -5,6 +5,7 @@ import { polices } from '../theme/typographie';
 import { Question } from '../../services/firebase';
 
 export type QuestionRatee = { question: Question; choisi: number };
+export type QuestionCorrecte = { question: Question };
 
 interface Props {
   score: number;
@@ -12,6 +13,12 @@ interface Props {
   seuil: number;
   reussi: boolean;
   ratees: QuestionRatee[];
+  /**
+   * Questions bien répondues. Toujours visibles, sans publicité : l'utilisateur les a déjà
+   * trouvées seul, il n'y a rien à débloquer. Seule la revue des erreurs (avec bonne réponse et
+   * explication) reste derrière la pub — voir `masque`.
+   */
+  bonnes: QuestionCorrecte[];
   /**
    * Ce qui reste masqué tant que la publicité n'a pas été regardée :
    * - `rien`  : tout est visible (Premium, pub déjà vue, ou clé Remote Config à « aucun ») ;
@@ -33,6 +40,7 @@ export default function ResultatExamen({
   seuil,
   reussi,
   ratees,
+  bonnes,
   masque,
   onDevoiler,
   onRecommencer,
@@ -97,6 +105,29 @@ export default function ResultatExamen({
             : `Non atteint — ${seuil} bonnes réponses exigées`}
         </Text>
       </View>
+
+      {bonnes.length > 0 && (
+        <>
+          <Text style={styles.sousTitreListe}>
+            {bonnes.length} bonne{bonnes.length > 1 ? 's' : ''} réponse
+            {bonnes.length > 1 ? 's' : ''}
+          </Text>
+          {bonnes.map(({ question }) => (
+            <View key={question.id} style={styles.carteBonne}>
+              <View style={styles.rateeEntete}>
+                <Text style={styles.rateeTheme}>{question.theme}</Text>
+                {question.type === 'situation' && (
+                  <View style={styles.tagSituation}>
+                    <Text style={styles.tagSituationTexte}>Mise en situation</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.rateeQuestion}>{question.question}</Text>
+              <Text style={styles.bonneReponseTexte}>✓ {question.choix[question.bonne]}</Text>
+            </View>
+          ))}
+        </>
+      )}
 
       {/* La revue des erreurs est le véritable contenu de cet écran : le score seul n'apprend
           rien. Chaque question ratée est reprise avec sa bonne réponse et son explication.
@@ -201,6 +232,8 @@ const styles = StyleSheet.create({
   rateeVotre: { fontSize: 13, fontFamily: polices.texte, color: couleurs.rouge, marginBottom: 2 },
   rateeBonne: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.ok },
   rateeExplication: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 19, marginTop: 8 },
+  carteBonne: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, padding: 15, marginBottom: 10, backgroundColor: 'rgba(62,107,79,0.04)' },
+  bonneReponseTexte: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.ok },
   boutonPrincipal: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 15, alignItems: 'center', marginTop: 20 },
   boutonPrincipalTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier },
   boutonSecondaire: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 10 },

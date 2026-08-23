@@ -11,7 +11,7 @@ import {
   logPubExamenVisionnee,
   logPubResultatVisionnee,
 } from '../../src/services/analytics';
-import ResultatExamen, { QuestionRatee } from '../../src/screens/ResultatExamen';
+import ResultatExamen, { QuestionCorrecte, QuestionRatee } from '../../src/screens/ResultatExamen';
 import PubRecompensee from '../../src/components/PubRecompensee';
 import { UNITE_PUB_EXAMEN, UNITE_PUB_RESULTAT_EXAMEN } from '../../src/services/ads';
 
@@ -55,6 +55,14 @@ export default function ResultatRoute() {
         choisi: r.choisi,
       }))
       .filter((e): e is QuestionRatee => e.question !== undefined);
+  }, [sessionQuiz]);
+
+  const bonnes = useMemo<QuestionCorrecte[]>(() => {
+    if (!sessionQuiz) return [];
+    return sessionQuiz.reponses
+      .filter((r) => r.correct)
+      .map((r) => ({ question: sessionQuiz.liste.find((q) => q.id === r.questionId) }))
+      .filter((e): e is QuestionCorrecte => e.question !== undefined);
   }, [sessionQuiz]);
 
   // Un examen ne compte qu'une fois. Sans cette garde, un simple re-rendu — changement de
@@ -108,6 +116,7 @@ export default function ResultatRoute() {
         seuil={seuil}
         reussi={reussi}
         ratees={ratees}
+        bonnes={bonnes}
         masque={masque}
         onDevoiler={() => setPubResultatVisible(true)}
         onRecommencer={examen.lancerExamen}
