@@ -73,7 +73,7 @@ export default function ResultatExamen({
           <Text style={styles.boutonPrincipalTexte}>Voir mon résultat</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.boutonSecondaire} onPress={onRetour}>
-          <Text style={styles.boutonSecondaireTexte}>Revenir au quizz</Text>
+          <Text style={styles.boutonSecondaireTexte}>Retour au menu de révision</Text>
         </TouchableOpacity>
       </ScrollView>
     );
@@ -140,7 +140,14 @@ export default function ResultatExamen({
           </Text>
           {ratees.map(({ question, choisi }) => (
             <View key={question.id} style={styles.carteRatee}>
-              <Text style={styles.rateeTheme}>{question.theme}</Text>
+              <View style={styles.rateeEntete}>
+                <Text style={styles.rateeTheme}>{question.theme}</Text>
+                {question.type === 'situation' && (
+                  <View style={styles.tagSituation}>
+                    <Text style={styles.tagSituationTexte}>Mise en situation</Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.rateeQuestion}>{question.question}</Text>
               <Text style={styles.rateeVotre}>Votre réponse : {question.choix[choisi]}</Text>
               <Text style={styles.rateeBonne}>Bonne réponse : {question.choix[question.bonne]}</Text>
@@ -154,7 +161,7 @@ export default function ResultatExamen({
         <Text style={styles.boutonPrincipalTexte}>Refaire un examen blanc</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.boutonSecondaire} onPress={onRetour}>
-        <Text style={styles.boutonSecondaireTexte}>Revenir au quizz</Text>
+        <Text style={styles.boutonSecondaireTexte}>Retour au menu de révision</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -186,7 +193,10 @@ const styles = StyleSheet.create({
   aucuneErreur: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', marginBottom: 20 },
   sousTitreListe: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.ardoise, marginBottom: 12 },
   carteRatee: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, padding: 15, marginBottom: 10 },
-  rateeTheme: { fontSize: 10.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.or, fontFamily: polices.texteSemiGras, marginBottom: 6 },
+  rateeEntete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
+  rateeTheme: { flexShrink: 1, fontSize: 10.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.or, fontFamily: polices.texteSemiGras },
+  tagSituation: { flexShrink: 0, borderWidth: 1, borderColor: couleurs.ardoise, borderRadius: 20, paddingVertical: 3, paddingHorizontal: 8, marginLeft: 8 },
+  tagSituationTexte: { fontSize: 9.5, letterSpacing: 0.3, textTransform: 'uppercase', color: couleurs.ardoise, fontFamily: polices.texteSemiGras },
   rateeQuestion: { fontSize: 14.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, lineHeight: 20, marginBottom: 8 },
   rateeVotre: { fontSize: 13, fontFamily: polices.texte, color: couleurs.rouge, marginBottom: 2 },
   rateeBonne: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.ok },
