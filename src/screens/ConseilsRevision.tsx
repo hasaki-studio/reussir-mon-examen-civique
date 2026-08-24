@@ -2,7 +2,16 @@ import { ReactNode } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { couleurs } from '../theme/colors';
 import { polices } from '../theme/typographie';
-import { URL_LIVRET_CITOYEN, URL_ANEF, ouvrirLien } from '../config/liens';
+import {
+  URL_FORMATION_CIVIQUE,
+  URL_LISTE_QUESTIONS_CSP,
+  URL_LISTE_QUESTIONS_CR,
+  URL_LISTE_QUESTIONS_NAT,
+  URL_ANEF,
+  URL_SERVICE_PUBLIC,
+  URL_ANNUAIRE_PREFECTURES,
+  ouvrirLien,
+} from '../config/liens';
 
 // Petits composants de mise en forme : le contenu de cet écran est rédactionnel et long,
 // les factoriser évite de répéter les styles à chaque paragraphe.
@@ -16,21 +25,6 @@ const Separateur = () => <View style={styles.separateur} />;
 const Encart = ({ children }: { children: ReactNode }) => (
   <View style={styles.encart}>
     <Text style={styles.encartTexte}>{children}</Text>
-  </View>
-);
-
-// Encart rouge : réservé à ce qui peut faire échouer une démarche, à distinguer visuellement
-// des simples informations.
-const EncartAlerte = ({ children }: { children: ReactNode }) => (
-  <View style={styles.encartAlerte}>
-    <Text style={styles.encartTexte}>{children}</Text>
-  </View>
-);
-
-const Puce = ({ children }: { children: ReactNode }) => (
-  <View style={styles.puce}>
-    <Text style={styles.puceMarque}>•</Text>
-    <Text style={styles.puceTexte}>{children}</Text>
   </View>
 );
 
@@ -76,10 +70,8 @@ export default function ConseilsRevision({ onRetour }: Props) {
         <Text style={styles.retour}>← Accueil</Text>
       </TouchableOpacity>
       <Text style={styles.titre}>Conseils de révision</Text>
-      <Text style={styles.sousTitre}>
-        Préparer son entretien de naturalisation française en 2026
-      </Text>
-      <Text style={styles.dateMaj}>Dernière mise à jour : 10 août 2026</Text>
+      <Text style={styles.sousTitre}>Préparer l'examen civique — carte de séjour, carte de résident, naturalisation</Text>
+      <Text style={styles.dateMaj}>Dernière mise à jour : 24 août 2026</Text>
 
       <Text style={styles.avertissement}>
         Important : cette application est indépendante et n'est pas affiliée au ministère de
@@ -87,366 +79,223 @@ export default function ConseilsRevision({ onRetour }: Props) {
         toujours aux sources officielles pour toute démarche.
       </Text>
 
-      <H1>En attendant la date de l'entretien</H1>
+      <H1>Ce qu'est l'examen civique</H1>
       <P>
-        Si vous avez déposé une demande de naturalisation, vous pouvez suivre l'avancement de
-        votre démarche sur le site officiel de l'Administration Numérique pour les Étrangers en
-        France (ANEF).
+        Depuis le <G>1er janvier 2026</G>, la réussite à l'examen civique conditionne la
+        délivrance de la <G>carte de séjour pluriannuelle</G>, de la <G>carte de résident</G> et
+        de la <G>naturalisation</G>. C'est un questionnaire à choix multiple de <G>40 questions</G>,
+        dont il faut obtenir au moins <G>32 bonnes réponses</G> pour valider.
       </P>
-      <EncartAlerte>
-        Le suivi administratif de votre dossier et la préparation de l'entretien sont deux choses
-        différentes. Cette application ne permet pas de suivre votre dossier de naturalisation et
-        n'accède pas aux données de l'ANEF. Pour vos démarches, utilisez uniquement les services
-        officiels de l'État.
-      </EncartAlerte>
+      <P>
+        Il porte sur cinq thèmes : les principes et valeurs de la République, le fonctionnement
+        des institutions, les droits et devoirs des citoyens, l'histoire et la géographie, et la
+        vie dans la société française.
+      </P>
+      <Encart>
+        Dans les conditions réelles, vous disposez de 45 minutes pour ces 40 questions — un peu
+        plus d'une minute par question. L'application ne minute pas encore vos sessions, mais
+        gardez ce rythme en tête pendant vos examens blancs.
+      </Encart>
+
+      <Separateur />
+
+      <H1>Où trouver la liste officielle des questions</H1>
+      <P>
+        Les questions de l'examen civique sont publiées par le ministère de l'Intérieur.{' '}
+        <G>La liste dépend de la démarche pour laquelle vous passez l'examen</G> : vérifiez
+        d'abord laquelle vous concerne, puis révisez à partir de celle-là.
+      </P>
       <CarteLien
-        titre="ANEF — suivi de votre dossier"
-        sousTitre="Dépôt et suivi en ligne de vos démarches administratives"
-        url={URL_ANEF}
+        titre="Carte de séjour pluriannuelle"
+        sousTitre="Liste officielle des questions de connaissance — CSP"
+        url={URL_LISTE_QUESTIONS_CSP}
       />
+      <CarteLien
+        titre="Carte de résident"
+        sousTitre="Liste officielle des questions de connaissance — CR"
+        url={URL_LISTE_QUESTIONS_CR}
+      />
+      <CarteLien
+        titre="Naturalisation"
+        sousTitre="Questions de connaissance pour la nationalité française"
+        url={URL_LISTE_QUESTIONS_NAT}
+      />
+
+      <Separateur />
+
+      <H1>Comment réviser efficacement</H1>
+
+      <H3>Étalez plutôt que de concentrer</H3>
       <P>
-        Une fois votre dossier arrivé à l'étape <G>« Confirmation de dépôt »</G>, vous pouvez
-        commencer à préparer votre entretien sans nécessairement attendre votre convocation.
+        Quinze minutes par jour pendant trois semaines ancrent davantage qu'une journée entière la
+        veille. La mémoire consolide pendant les intervalles, pas pendant l'effort. C'est ce que
+        permet <G>Révision express</G> : quelques questions tirées au hasard, le temps d'un trajet.
       </P>
 
-      <H2>Commencez votre préparation dès maintenant</H2>
+      <H3>Passez des séries en conditions réelles</H3>
       <P>
-        N'attendez pas nécessairement de recevoir votre convocation pour commencer à réviser. Une
-        préparation régulière permet de revoir progressivement les connaissances nécessaires et
-        surtout de vous habituer à <G>comprendre les notions et à formuler vos réponses avec vos
-        propres mots</G>.
+        40 questions, 32 bonnes réponses exigées : entraînez-vous dans ces conditions avant le jour
+        J, pour ne pas découvrir le format le jour de l'examen. <G>Examen blanc</G> reproduit
+        exactement cette contrainte.
+      </P>
+
+      <H3>Revenez sur ce qui résiste</H3>
+      <P>
+        Un thème déjà maîtrisé n'apprend plus rien. Les questions qui vous mettent en difficulté
+        méritent d'être revues plusieurs fois, à quelques jours d'écart. <G>Réviser en détail</G>{' '}
+        sert précisément à ça : reprendre un thème ou un niveau précis sans refaire tout le
+        programme.
+      </P>
+
+      <H3>Réfléchissez avant de répondre</H3>
+      <P>
+        Il faut choisir une réponse pour avancer — autant que ce soit un choix réfléchi. Une bonne
+        partie des questions se raisonnent par élimination même sans connaître la réponse exacte :
+        l'explication qui suit chaque réponse indique pourquoi les autres propositions sont
+        fausses, c'est souvent là que se construit ce raisonnement.
+      </P>
+
+      <H3>Méfiez-vous des réponses absolues</H3>
+      <P>
+        Les questions du QCM piègent souvent sur les propositions trop tranchées — « jamais »,
+        « toujours », « automatiquement ». Une réponse aussi catégorique est souvent la mauvaise.
       </P>
 
       <Separateur />
 
-      <H1>Que faut-il réviser pour l'entretien ?</H1>
-      <P>La préparation ne consiste pas uniquement à apprendre des dates ou des définitions.</P>
+      <H1>Les trois modes, et quand les utiliser</H1>
       <P>
-        Votre préparation s'organise autour de <G>cinq grands thèmes</G> :
+        Connaître ces principes ne suffit pas : encore faut-il savoir quoi ouvrir un mardi soir
+        quand il reste vingt minutes. Les trois modes ne servent pas au même moment de la
+        préparation.
       </P>
 
-      <H3>1. Principes et valeurs de la République</H3>
+      <H2>⚡ Révision express — entretenir, tous les jours</H2>
       <P>
-        Les principes qui structurent la République française : liberté, égalité, fraternité,
-        laïcité, égalité entre les femmes et les hommes, et autres notions essentielles.
+        Quinze questions tirées au hasard dans l'ensemble du programme, corrigées au fur et à
+        mesure. Le tirage mélange les thèmes, ce qui vous oblige à identifier de quoi parle la
+        question avant d'y répondre — un effort que la révision par thème escamote, et qui est
+        précisément celui demandé le jour de l'examen.
+      </P>
+      <P>À utiliser du premier jour jusqu'à la veille de l'épreuve, sans chercher à faire de longues sessions.</P>
+
+      <H2>📚 Réviser en détail — construire les bases</H2>
+      <P>
+        Les questions organisées par thème ou par niveau. C'est le mode du début de préparation,
+        quand le programme est encore neuf : cinq thèmes d'un coup découragent, un thème à la fois
+        se termine. C'est aussi le mode de la réparation : après un examen blanc raté sur un thème
+        précis, on y revient ici plutôt que de tout recommencer.
       </P>
 
-      <H3>2. Système institutionnel et politique</H3>
+      <H2>📝 Examen blanc — se mettre en conditions</H2>
       <P>
-        Le fonctionnement des institutions françaises, les principaux pouvoirs et le rôle des
-        différentes institutions de la République.
+        40 questions dont des mises en situation, sans correction avant la fin — les conditions les
+        plus proches de l'épreuve réelle que propose l'application.
       </P>
-
-      <H3>3. Droits et devoirs des citoyens</H3>
-      <P>Les principaux droits et devoirs liés à la citoyenneté et à la vie en société.</P>
-
-      <H3>4. Histoire, géographie et culture</H3>
       <P>
-        Les grandes connaissances permettant de mieux comprendre la France, son histoire, son
-        territoire et sa culture.
+        Son intérêt n'est pas d'apprendre, mais de <G>mesurer</G>. Tant que vous ne passez pas
+        régulièrement la barre des 32 bonnes réponses sur 40, la préparation n'est pas terminée,
+        quel que soit le sentiment de maîtrise.
       </P>
-
-      <H3>5. Vivre dans la société française</H3>
-      <P>
-        La vie quotidienne en France, les règles communes et les principes qui permettent de
-        vivre ensemble.
-      </P>
-
-      <H3>Focus supplémentaire : Livret du citoyen 2026</H3>
-      <P>
-        Un <G>focus spécifique sur le Livret du citoyen 2026</G> est également intégré, afin de
-        mettre en évidence les éléments actualisés de la nouvelle édition.
-      </P>
+      <Encart>Comptez-en au moins deux avant l'examen, à quelques jours d'intervalle.</Encart>
 
       <Separateur />
 
-      <H1>Les questions ne sont pas seulement des QCM</H1>
-      <P>
-        Un point essentiel à comprendre avant de commencer : l'entretien de naturalisation ne se
-        prépare pas comme un simple questionnaire à choix multiple.
-      </P>
-      <P>
-        Certaines questions demandent de <G>s'exprimer, d'expliquer son point de vue et de
-        construire une réponse personnelle</G>. Par exemple :
-      </P>
-
-      <H3>« Quelle est la personnalité française qui vous influence ? Et pourquoi ? »</H3>
-      <P>
-        Il ne suffit pas de connaître un nom. Il faut être capable d'expliquer pourquoi cette
-        personne vous influence et de développer une réponse cohérente.
-      </P>
-
-      <H3>« Que pensez-vous du port des signes religieux dans les lieux publics ? »</H3>
-      <P>
-        Cette question peut vous amener à expliquer votre compréhension de la <G>laïcité</G>, de
-        la liberté de conscience et des principes républicains.
-      </P>
-
-      <H3>« Que pensez-vous de l'égalité entre les femmes et les hommes ? »</H3>
-      <P>
-        Il faut être capable d'expliquer ce que représente cette égalité et de l'illustrer par des
-        exemples.
-      </P>
-
-      <Encart>
-        L'objectif de votre préparation doit donc être de comprendre les notions et d'être capable
-        de les expliquer avec vos propres mots. Une réponse récitée mot pour mot peut être moins
-        naturelle qu'une réponse comprise et reformulée personnellement.
-      </Encart>
-
-      <Separateur />
-
-      <H1>Comment réviser efficacement ?</H1>
-
-      <H2>1. Révisez régulièrement plutôt que tout d'un coup</H2>
-      <P>
-        Quinze minutes par jour pendant plusieurs semaines sont plus efficaces qu'une longue
-        session la veille. L'objectif est de revenir régulièrement sur les notions afin de les
-        mémoriser progressivement.
-      </P>
-      <P>
-        Le mode <G>Révision Express</G> propose une session courte de 15 fiches mélangées, issues
-        des différents thèmes, ce qui permet de varier les sujets au fil des sessions.
-      </P>
-      <Encart>
-        💡 Faites une petite session chaque jour plutôt qu'une grosse session uniquement lorsque
-        votre entretien approche.
-      </Encart>
-
-      <H2>2. Essayez de répondre avant de regarder la réponse</H2>
-      <P>
-        Ne dévoilez pas immédiatement la réponse. Prenez quelques secondes pour réfléchir et
-        formuler la vôtre. Cet effort de rappel vous oblige à mobiliser vos connaissances au lieu
-        de simplement reconnaître une réponse déjà lue.
-      </P>
-      <P>
-        Après avoir répondu, l'encart <G>« Info utile »</G> apporte du contexte lorsque c'est
-        nécessaire. L'intérêt n'est pas seulement de savoir si votre réponse est correcte : c'est
-        aussi de <G>comprendre pourquoi</G>.
-      </P>
-
-      <H2>3. Revenez sur ce que vous maîtrisez moins</H2>
-      <P>
-        Une notion déjà maîtrisée mérite moins d'attention qu'une question sur laquelle vous
-        hésitez régulièrement. Identifiez ce qui vous pose problème et revenez-y plusieurs fois.
-      </P>
-      <P>Deux façons de travailler s'offrent à vous :</P>
-      <Puce>
-        <G>Révision par thème</G>, pour vous concentrer sur un domaine précis ;
-      </Puce>
-      <Puce>
-        <G>Révision par niveau</G>, pour découvrir les fiches progressivement, au fur et à mesure
-        que vous les débloquez.
-      </Puce>
-
-      <H2>4. Reformulez avec vos propres mots</H2>
-      <P>
-        L'entretien est une conversation, pas une récitation. Certaines questions demandent
-        d'expliquer une notion, de donner votre opinion ou de développer votre réponse : mieux
-        vaut comprendre le sujet qu'apprendre une phrase par cœur.
-      </P>
-      <P>
-        Les <G>réponses bonus</G>, une fois débloquées, restent accessibles hors ligne et peuvent
-        apporter :
-      </P>
-      <Puce>des explications supplémentaires ;</Puce>
-      <Puce>des astuces pour mieux comprendre la question ;</Puce>
-      <Puce>des éléments à retenir ;</Puce>
-      <Puce>des erreurs à éviter.</Puce>
-      <P>
-        Ces informations vous aident surtout à construire ensuite <G>votre propre réponse</G>.
-      </P>
-
-      <H2>5. Reliez les connaissances à votre parcours</H2>
-      <P>
-        Les valeurs et principes de la République ne sont pas seulement des définitions à
-        mémoriser. Réfléchissez à ce qu'ils représentent dans votre vie quotidienne en France et à
-        la manière dont vous pourriez les expliquer avec vos mots.
-      </P>
-      <Encart>
-        Pendant vos révisions, demandez-vous : « Est-ce que je serais capable d'expliquer cette
-        notion à l'oral ? » C'est cette capacité à comprendre et à s'exprimer naturellement qui
-        doit guider votre préparation.
-      </Encart>
-
-      <Separateur />
-
-      <H1>Votre parcours personnel compte aussi</H1>
-      <P>
-        L'entretien peut également porter sur votre propre parcours. Avant votre rendez-vous,
-        relisez votre dossier et sachez retrouver facilement :
-      </P>
-      <Puce>vos dates clés ;</Puce>
-      <Puce>vos adresses ;</Puce>
-      <Puce>vos emplois ;</Puce>
-      <Puce>votre situation familiale ;</Puce>
-      <Puce>votre parcours et votre installation en France ;</Puce>
-      <Puce>vos attaches et vos projets.</Puce>
-      <P>
-        Préparez quelques phrases simples pour présenter votre parcours. L'objectif n'est pas
-        d'apprendre un texte par cœur, mais de le raconter de manière claire et cohérente.
-      </P>
-
-      <Separateur />
-
-      <H1>Après avoir reçu votre convocation</H1>
-      <P>Lorsque vous recevez votre convocation, vérifiez attentivement :</P>
+      <H1>Un plan sur quatre semaines</H1>
       <Etape numero={1}>
-        <G>La date et le lieu</G> de l'entretien.
+        <G>Semaines 1 et 2 :</G> Réviser en détail, pour parcourir tout le programme une première
+        fois. En parallèle chaque jour, Révision express pour entretenir et mélanger les thèmes.
       </Etape>
       <Etape numero={2}>
-        <G>Les documents à apporter.</G>
+        <G>Semaine 3 :</G> premier examen blanc, pour situer son niveau réel, sans complaisance.
       </Etape>
       <Etape numero={3}>
-        <G>Les justificatifs</G> éventuellement demandés.
+        <G>Semaine 4 :</G> examen blanc, puis retour sur les thèmes faibles, pour viser 32/40 de
+        façon régulière.
       </Etape>
-      <P>Les délais de traitement peuvent varier selon les préfectures.</P>
-
-      <H3>Que faire en cas d'empêchement ?</H3>
       <P>
-        Si vous ne pouvez pas vous présenter au créneau indiqué, consultez attentivement les
-        instructions figurant sur la convocation et faites connaître votre demande de report ainsi
-        que son motif, selon les modalités indiquées.
-      </P>
-      <EncartAlerte>
-        Une nouvelle convocation peut alors vous être adressée. Elle doit être honorée, sous peine
-        de voir votre demande de naturalisation classée sans suite.
-      </EncartAlerte>
-      <P>
-        À partir de la convocation, vous pouvez intensifier votre préparation et vous concentrer
-        sur les thèmes que vous maîtrisez le moins.
+        Quatre semaines est un ordre de grandeur, pas une règle : ajustez selon votre point de
+        départ et la date de votre convocation.
       </P>
 
       <Separateur />
 
-      <H1>Livret du citoyen 2026</H1>
+      <H1>Le jour de l'examen</H1>
       <P>
-        Le Livret du citoyen constitue un support de référence pour préparer l'entretien. La
-        version 2026 apporte une nouvelle organisation et un contenu actualisé.
+        Vérifiez la convocation : date, lieu, pièce d'identité et documents demandés. Arrivez en
+        avance. 45 minutes passent vite sur 40 questions — ne restez pas bloqué trop longtemps sur
+        une seule, passez à la suite et revenez-y si le temps le permet.
       </P>
-      <Encart>
-        Attention aux versions obsolètes : vérifiez toujours que vous utilisez une source
-        officielle, et que l'adresse du site correspond bien à un domaine gouvernemental en
-        .gouv.fr.
-      </Encart>
+
+      <Separateur />
+
+      <H1>Liens utiles</H1>
       <CarteLien
-        titre="Livret du citoyen (édition 2026)"
-        sousTitre="Publié gratuitement par le ministère de l'Intérieur"
-        url={URL_LIVRET_CITOYEN}
+        titre="Portail officiel de l'examen civique"
+        sousTitre="Les ressources de préparation publiées par le ministère de l'Intérieur"
+        url={URL_FORMATION_CIVIQUE}
       />
-      <P>
-        Dans l'application, les fiches du thème <G>« Livret du citoyen 2026 »</G> reprennent les
-        nouveaux éléments introduits par cette version. Ce focus est particulièrement utile si
-        vous aviez commencé votre préparation avant sa publication.
-      </P>
-
-      <Separateur />
-
-      <H1>Entretien et examen civique : quelle différence ?</H1>
-      <P>
-        Il est important de ne pas confondre <G>l'entretien d'assimilation</G> et <G>l'examen
-        civique</G>.
-      </P>
-
-      <H2>L'entretien de naturalisation</H2>
-      <P>
-        C'est celui que prépare cette application. Il porte sur les connaissances relatives à la
-        France — histoire, culture, institutions, valeurs — ainsi que sur votre propre parcours.
-      </P>
-      <P>
-        Il comporte aussi une dimension d'échange : certaines questions demandent de donner votre
-        opinion, d'expliquer une notion ou de développer une réponse.
-      </P>
-
-      <H2>L'examen civique</H2>
-      <P>
-        C'est un dispositif <G>distinct</G>, présenté sous la forme d'un questionnaire à choix
-        multiple de 40 questions, avec un seuil de réussite de 32 bonnes réponses.
-      </P>
-      <P>
-        L'attestation de réussite à l'examen civique et l'entretien d'assimilation correspondent
-        donc à deux étapes et à deux préparations différentes.
-      </P>
-      <Encart>
-        🆕 Une application dédiée à la préparation de l'examen civique, orientée vers
-        l'entraînement au format QCM, est en préparation. Disponible prochainement.
-      </Encart>
-
-      <Separateur />
-
-      <H1>Le niveau de français</H1>
-      <P>
-        Le niveau de français exigé pour la naturalisation est passé de <G>B1 à B2</G>.
-      </P>
-      <P>
-        Cette évolution renforce l'importance de comprendre les questions et de s'exprimer
-        correctement pendant l'entretien. La préparation ne consiste donc pas uniquement à
-        mémoriser des connaissances : travaillez aussi votre capacité à <G>comprendre, expliquer
-        et répondre avec vos propres mots</G>.
-      </P>
-
-      <Separateur />
-
-      <H1>Le jour de l'entretien</H1>
-      <P>
-        L'agent de préfecture ou consulaire peut vérifier vos connaissances de l'histoire, de la
-        culture et des institutions françaises, ainsi que votre adhésion aux valeurs de la
-        République.
-      </P>
-      <P>
-        Une hésitation, un mot oublié ou une date approximative ne signifie pas que votre
-        entretien est compromis. Il est préférable de reconnaître que vous ne connaissez pas une
-        réponse plutôt que d'inventer.
-      </P>
-      <P>
-        La cohérence entre les informations de votre dossier, votre parcours et vos réponses reste
-        importante.
-      </P>
+      <CarteLien
+        titre="ANEF"
+        sousTitre="Dépôt et suivi de votre dossier en ligne"
+        url={URL_ANEF}
+      />
+      <CarteLien
+        titre="Service-public.fr"
+        sousTitre="Conditions, pièces justificatives et démarches"
+        url={URL_SERVICE_PUBLIC}
+      />
+      <CarteLien
+        titre="Votre préfecture"
+        sousTitre="Prise de rendez-vous et questions sur votre dossier"
+        url={URL_ANNUAIRE_PREFECTURES}
+      />
 
       <Separateur />
 
       <H1>Questions fréquentes</H1>
 
-      <H2>Cette application permet-elle de suivre mon dossier ANEF ?</H2>
+      <H2>L'examen civique est-il obligatoire ?</H2>
       <P>
-        <G>Non.</G> C'est une application de préparation et de révision. Elle ne permet pas de
-        consulter l'avancement d'une demande et n'accède pas aux données de l'ANEF. Pour suivre
-        votre démarche administrative, utilisez le site officiel de l'ANEF.
+        Oui. Depuis le 1er janvier 2026, sa réussite conditionne la délivrance de la carte de
+        séjour pluriannuelle, de la carte de résident et de la naturalisation. La liste de
+        questions à réviser dépend de la démarche concernée.
       </P>
 
-      <H2>Prépare-t-elle à l'examen civique ?</H2>
+      <H2>Quelle différence entre l'examen civique et l'entretien de naturalisation ?</H2>
       <P>
-        Non. <G>L'entretien de naturalisation et l'examen civique sont deux étapes distinctes.</G>{' '}
-        Une application dédiée à l'examen civique est prévue prochainement.
+        Ce sont deux étapes distinctes. L'examen civique est un QCM de 40 questions avec un seuil
+        de réussite chiffré. L'entretien d'assimilation est un échange oral avec un agent, qui
+        porte aussi sur votre parcours personnel. Réussir l'un ne dispense pas de l'autre.
       </P>
 
-      <H2>Remplace-t-elle les sources officielles ?</H2>
+      <H2>En combien de temps peut-on être prêt ?</H2>
       <P>
-        Non. C'est un outil de préparation indépendant. Pour toute démarche administrative,
-        vérifiez toujours les informations auprès des sources officielles.
+        Cela dépend de votre point de départ, et aucune durée ne garantit la réussite. En
+        pratique, une préparation régulière — une quinzaine de minutes par jour pendant trois à
+        quatre semaines — laisse le temps de parcourir tous les thèmes, puis de revenir deux ou
+        trois fois sur les questions qui résistent. Le meilleur indicateur reste vos résultats en
+        examen blanc.
       </P>
 
-      <Separateur />
-
-      <H1>Sources officielles</H1>
-      <P>Pour toute démarche administrative, utilisez en priorité les sources officielles.</P>
-      <CarteLien
-        titre="Administration Numérique pour les Étrangers en France"
-        sousTitre="Dépôt et suivi de votre dossier"
-        url={URL_ANEF}
-      />
-      <CarteLien
-        titre="Livret du citoyen — ministère de l'Intérieur"
-        sousTitre="Le support de référence pour l'entretien"
-        url={URL_LIVRET_CITOYEN}
-      />
-
-      <Separateur />
-
-      <H1>Contact</H1>
+      <H2>L'application est-elle gratuite ?</H2>
       <P>
-        Toute question relative à cette page ou à l'application peut être adressée à{' '}
-        <G>contact@hasakistudio.fr</G>.
+        Le téléchargement est gratuit. Une partie du contenu se débloque en regardant une courte
+        publicité. Un achat unique et facultatif donne accès à l'intégralité du contenu, sans
+        publicité et mises à jour incluses. Il n'y a pas d'abonnement.
+      </P>
+
+      <H2>L'application remplace-t-elle les sources officielles ?</H2>
+      <P>
+        Non. C'est un outil d'entraînement indépendant. Pour toute démarche administrative —
+        conditions, pièces à fournir, inscription, convocation — référez-vous aux sources
+        officielles listées plus haut.
+      </P>
+
+      <H2>Comment obtenir de l'aide ?</H2>
+      <P>
+        Pour une question sur l'application, une erreur repérée dans une question ou une demande
+        liée à vos données, écrivez à <G>contact@hasakistudio.fr</G>.
       </P>
     </ScrollView>
   );
@@ -484,18 +333,7 @@ const styles = StyleSheet.create({
     padding: 15,
     marginBottom: 20,
   },
-  encartAlerte: {
-    backgroundColor: 'rgba(166,43,43,0.06)',
-    borderLeftWidth: 3,
-    borderLeftColor: couleurs.rouge,
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 20,
-  },
   encartTexte: { fontSize: 13.5, fontFamily: polices.texte, lineHeight: 20, color: couleurs.ardoise },
-  puce: { flexDirection: 'row', gap: 8, marginBottom: 8, paddingLeft: 4 },
-  puceMarque: { fontSize: 14, color: couleurs.or, fontFamily: polices.texte, lineHeight: 21 },
-  puceTexte: { flex: 1, fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 21 },
   etape: { flexDirection: 'row', gap: 14, marginBottom: 16 },
   etapeNum: {
     width: 26,

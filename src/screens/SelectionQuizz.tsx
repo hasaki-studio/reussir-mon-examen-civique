@@ -5,11 +5,6 @@ import { polices } from '../theme/typographie';
 import { MESSAGE_ACCUEIL_HORS_LIGNE } from '../config/monetisation';
 import type { Quizz } from '../config/quizz';
 
-// ⚙️ « Conseils de révision » reste tout orienté naturalisation (lot 4, pas encore fait) :
-// masqué le temps de la réécriture pour les trois quizz, à repasser à true une fois prêt pour
-// la soumission Play Store.
-const AFFICHER_CONSEILS = false;
-
 export type LigneQuizz = {
   cle: Quizz;
   nom: string;
@@ -136,12 +131,10 @@ export default function SelectionQuizz({
         <Text style={styles.horsLigneTexte}>{messageAccueil || MESSAGE_ACCUEIL_HORS_LIGNE}</Text>
       </View>
 
-      <View style={[styles.liensBas, !AFFICHER_CONSEILS && styles.liensBasSeul]}>
-        {AFFICHER_CONSEILS && (
-          <TouchableOpacity onPress={onConseils}>
-            <Text style={styles.lien}>Conseils de révision</Text>
-          </TouchableOpacity>
-        )}
+      <View style={styles.liensBas}>
+        <TouchableOpacity onPress={onConseils}>
+          <Text style={styles.lien}>Conseils de révision</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={onMentionsLegales}>
           <Text style={styles.lien}>Mentions légales</Text>
         </TouchableOpacity>
@@ -182,7 +175,6 @@ const styles = StyleSheet.create({
   pointVert: { width: 6, height: 6, borderRadius: 3, backgroundColor: couleurs.ok, marginRight: 5 },
   horsLigneTexte: { fontSize: 11, color: couleurs.ok, fontFamily: polices.texteSemiGras },
   liensBas: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 18 },
-  liensBasSeul: { justifyContent: 'flex-end' },
   lien: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, textDecorationLine: 'underline' },
   lienReset: { marginTop: 8 },
   lienResetTexte: { fontSize: 12, fontFamily: polices.texte, color: couleurs.rouge, textDecorationLine: 'underline', textAlign: 'center' },

@@ -15,19 +15,21 @@ export const URL_CONFIDENTIALITE = 'https://examencivique.hasakistudio.fr/confid
 export const URL_MENTIONS_LEGALES = 'https://examencivique.hasakistudio.fr/mentions-legales';
 
 // ⚠️ Liens officiels de l'écran Conseils. Les adresses des sites publics changent
-// régulièrement : un lien mort vers le Livret du citoyen décrédibilise plus qu'il n'aide.
+// régulièrement : un lien mort vers une liste officielle décrédibilise plus qu'il n'aide.
 // Toute entrée laissée vide rend sa carte non cliquable et masque sa flèche — l'app promet
 // alors moins, plutôt que de promettre à faux.
 // TODO(contenu) : vérifier chaque adresse sur l'appareil avant chaque distribution.
-// TODO(contenu) : ces liens ne couvrent que la naturalisation, héritage de l'application
-// sœur. Civique prépare aussi à la carte de séjour pluriannuelle et à la carte de résident :
-// ajouter les fiches service-public.fr correspondantes.
-export const URL_LIVRET_CITOYEN =
-  'https://www.immigration.interieur.gouv.fr/documentation/guides-textes-et-brochures/livret-du-citoyen.html';
-export const URL_DGEF = 'https://www.immigration.interieur.gouv.fr/';
+export const URL_FORMATION_CIVIQUE = 'https://formation-civique.interieur.gouv.fr/examen-civique/';
+// Liste officielle des questions de connaissance, une par démarche : le contenu de l'examen
+// diffère selon le titre visé, ce que rappelle l'écran Conseils avant de proposer ces liens.
+export const URL_LISTE_QUESTIONS_CSP =
+  'https://formation-civique.interieur.gouv.fr/examen-civique/liste-officielle-des-questions-de-connaissance-csp/';
+export const URL_LISTE_QUESTIONS_CR =
+  'https://formation-civique.interieur.gouv.fr/examen-civique/liste-officielle-des-questions-de-connaissance-cr/';
+export const URL_LISTE_QUESTIONS_NAT =
+  'https://www.immigration.interieur.gouv.fr/documentation/guides-textes-et-brochures/questions-de-connaissance-pour-lexamen-civique-nationalite-francaise.html';
 export const URL_ANEF = 'https://administration-etrangers-en-france.interieur.gouv.fr/';
-export const URL_SERVICE_PUBLIC_NATURALISATION =
-  'https://www.service-public.fr/particuliers/vosdroits/N111';
+export const URL_SERVICE_PUBLIC = 'https://www.service-public.gouv.fr/';
 export const URL_ANNUAIRE_PREFECTURES = 'https://lannuaire.service-public.fr/';
 
 /**
