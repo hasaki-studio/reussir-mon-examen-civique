@@ -9,6 +9,7 @@ import React, {
   useMemo,
   ReactNode,
 } from 'react';
+import { AppState } from 'react-native';
 import { useIAP, ErrorCode, type Purchase, type PurchaseError } from 'expo-iap';
 import { useEtat } from './EtatContext';
 import { SKU_PREMIUM, PRIX_PREMIUM_INDICATIF } from '../config/monetisation';
@@ -18,6 +19,21 @@ import { logAchatPremiumAnnule } from '../services/analytics';
 // indisponible, facturation désactivée) n'aident pas l'utilisateur, qui n'a de toute façon
 // qu'une action possible. L'erreur technique part dans la console pour le diagnostic.
 const MESSAGE_ECHEC_ACHAT = "L'achat n'a pas pu aboutir. Vérifiez votre connexion, puis réessayez.";
+
+// Garde-fou du drapeau `achatEnCours`. `requestPurchase` se résout dès l'ouverture de la
+// feuille du store, pas à l'issue de l'achat : le drapeau ne retombe donc que sur
+// onPurchaseSuccess ou onPurchaseError. Sur Android ces rappels peuvent ne jamais arriver —
+// application mise en arrière-plan pendant le paiement, processus Play Store tué, achat
+// laissé en attente d'un paiement différé. Le drapeau resterait alors vrai indéfiniment et
+// `lancerAchatPremium` sortirait immédiatement : le bouton Premium devient inerte jusqu'au
+// redémarrage complet de l'application, sans le moindre message.
+//
+// Relâcher le drapeau n'annule aucun achat : il ne fait que rendre le bouton à nouveau
+// utilisable. Si l'achat aboutit malgré tout, onPurchaseSuccess active Premium comme prévu.
+const DELAI_MAX_ACHAT_MS = 90_000;
+// Au retour au premier plan, la feuille du store est forcément refermée. On laisse toutefois
+// un court délai : sur Android le rappel de succès arrive parfois juste après la reprise.
+const DELAI_RETOUR_PREMIER_PLAN_MS = 4_000;
 
 type AchatPremiumContextValue = {
   // Prix localisé récupéré du store ; retombe sur une valeur indicative tant qu'il n'est pas connu.
@@ -129,6 +145,27 @@ export function AchatPremiumProvider({ children }: { children: ReactNode }) {
       );
     }
   }, [availablePurchases, activerPremium, montantFacture]);
+
+  // Voir DELAI_MAX_ACHAT_MS : sans cela, un achat dont le store ne notifie jamais l'issue
+  // condamne le bouton Premium pour toute la durée de vie du processus.
+  useEffect(() => {
+    if (!achatEnCours) return;
+
+    let repli: ReturnType<typeof setTimeout> | undefined;
+    const butoir = setTimeout(() => setAchatEnCours(false), DELAI_MAX_ACHAT_MS);
+
+    const abonnement = AppState.addEventListener('change', (etatApp) => {
+      if (etatApp !== 'active') return;
+      clearTimeout(repli);
+      repli = setTimeout(() => setAchatEnCours(false), DELAI_RETOUR_PREMIER_PLAN_MS);
+    });
+
+    return () => {
+      clearTimeout(butoir);
+      clearTimeout(repli);
+      abonnement.remove();
+    };
+  }, [achatEnCours]);
 
   const lancerAchatPremium = useCallback(() => {
     if (etat.premium || achatEnCours) return;

@@ -234,8 +234,8 @@ const styles = StyleSheet.create({
   rateeExplication: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 19, marginTop: 8 },
   carteBonne: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, padding: 15, marginBottom: 10, backgroundColor: 'rgba(62,107,79,0.04)' },
   bonneReponseTexte: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.ok },
-  boutonPrincipal: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 15, alignItems: 'center', marginTop: 20 },
-  boutonPrincipalTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier },
-  boutonSecondaire: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginTop: 10 },
-  boutonSecondaireTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
+  boutonPrincipal: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 15, paddingHorizontal: 14, alignItems: 'center', marginTop: 20 },
+  boutonPrincipalTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, textAlign: 'center' },
+  boutonSecondaire: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, alignItems: 'center', marginTop: 10 },
+  boutonSecondaireTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
 });

@@ -72,8 +72,8 @@ const styles = StyleSheet.create({
   paragraphe: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 21, marginBottom: 16 },
   encart: { backgroundColor: 'rgba(28,43,73,0.04)', borderLeftWidth: 3, borderLeftColor: couleurs.or, borderRadius: 8, padding: 14, marginBottom: 16 },
   encartTexte: { fontSize: 13, fontFamily: polices.texte, color: couleurs.bleuNuit, lineHeight: 21 },
-  boutonAccepter: { backgroundColor: couleurs.bleuNuit, borderRadius: 12, paddingVertical: 16, alignItems: 'center', marginTop: 6, marginBottom: 12 },
-  boutonAccepterTexte: { color: couleurs.papier, fontFamily: polices.texteSemiGras, fontSize: 15 },
-  boutonRefuser: { borderWidth: 1.5, borderColor: couleurs.bleuNuit, borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
-  boutonRefuserTexte: { color: couleurs.bleuNuit, fontFamily: polices.texteSemiGras, fontSize: 15 },
+  boutonAccepter: { backgroundColor: couleurs.bleuNuit, borderRadius: 12, paddingVertical: 16, paddingHorizontal: 14, alignItems: 'center', marginTop: 6, marginBottom: 12 },
+  boutonAccepterTexte: { color: couleurs.papier, fontFamily: polices.texteSemiGras, fontSize: 15, textAlign: 'center' },
+  boutonRefuser: { borderWidth: 1.5, borderColor: couleurs.bleuNuit, borderRadius: 12, paddingVertical: 16, paddingHorizontal: 14, alignItems: 'center' },
+  boutonRefuserTexte: { color: couleurs.bleuNuit, fontFamily: polices.texteSemiGras, fontSize: 15, textAlign: 'center' },
 });

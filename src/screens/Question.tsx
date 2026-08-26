@@ -211,9 +211,12 @@ const styles = StyleSheet.create({
   explicationTexte: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 20 },
   navigation: { flexDirection: 'row', gap: 10, marginTop: 18 },
   boutonPrecedent: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 15, paddingHorizontal: 18, alignItems: 'center', backgroundColor: couleurs.papier },
-  boutonPrecedentTexte: { fontSize: 13.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
-  boutonSuivant: { flex: 1, backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 15, alignItems: 'center' },
+  boutonPrecedentTexte: { fontSize: 13.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
+  // paddingHorizontal indispensable : `alignItems: 'center'` centre la boîte de texte, pas les
+  // lignes à l'intérieur. Sans marge latérale, un libellé qui revient à la ligne — ce qui arrive
+  // dès que la police système est agrandie ou l'écran étroit — se colle à la bordure gauche.
+  boutonSuivant: { flex: 1, backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 15, paddingHorizontal: 14, alignItems: 'center', justifyContent: 'center' },
   boutonSuivantDesactive: { backgroundColor: couleurs.ligne },
-  boutonSuivantTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, letterSpacing: 0.3 },
+  boutonSuivantTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, letterSpacing: 0.3, textAlign: 'center' },
   boutonSuivantTexteDesactive: { color: couleurs.ardoise },
 });

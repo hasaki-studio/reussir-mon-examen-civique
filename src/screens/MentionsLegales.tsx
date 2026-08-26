@@ -182,8 +182,8 @@ const styles = StyleSheet.create({
   coordonneeLigne: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 20, marginBottom: 3 },
   consentEncart: { backgroundColor: 'rgba(28,43,73,0.04)', borderRadius: 10, padding: 16, marginBottom: 20 },
   consentStatut: { fontSize: 13.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, marginBottom: 12 },
-  consentBouton: { borderWidth: 1.5, borderColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  consentBouton: { borderWidth: 1.5, borderColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 14, alignItems: 'center' },
   consentBoutonEspace: { marginBottom: 20 },
-  consentBoutonTexte: { fontSize: 13.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
+  consentBoutonTexte: { fontSize: 13.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
   lienTexte: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.bleuNuit, textDecorationLine: 'underline', marginBottom: 20 },
 });

@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   spinner: { marginBottom: 14 },
   titre: { fontSize: 19, fontFamily: polices.titre, color: couleurs.bleuNuit, marginBottom: 8 },
   texte: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 20, textAlign: 'center', marginBottom: 20 },
-  btnPub: { backgroundColor: couleurs.or, borderRadius: 10, paddingVertical: 14, width: '100%', alignItems: 'center' },
-  btnPubTexte: { color: '#fff', fontFamily: polices.texteGras, fontSize: 14 },
+  btnPub: { backgroundColor: couleurs.or, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, width: '100%', alignItems: 'center' },
+  btnPubTexte: { color: '#fff', fontFamily: polices.texteGras, fontSize: 14, textAlign: 'center' },
   fermer: { marginTop: 12, fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, textDecorationLine: 'underline' },
 });
