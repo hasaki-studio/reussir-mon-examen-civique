@@ -76,6 +76,23 @@ export default function AccueilQuizz({
         { paddingBottom: styles.contenu.paddingBottom + insets.bottom },
       ]}
     >
+      {/* Repère de marque, disparu de la vue quotidienne depuis que l'application ne
+          traverse plus systématiquement le menu de sélection (celui qui le portait) à chaque
+          lancement. En miniature ici : l'écran reste d'abord celui du quizz en cours. */}
+      <View style={styles.marque}>
+        <View style={styles.drapeauMini}>
+          <View style={[styles.bandeDrapeauMini, { backgroundColor: couleurs.bleuNuit }]} />
+          <View
+            style={[
+              styles.bandeDrapeauMini,
+              { backgroundColor: couleurs.papier, borderWidth: 1, borderColor: couleurs.ligne },
+            ]}
+          />
+          <View style={[styles.bandeDrapeauMini, { backgroundColor: couleurs.rouge }]} />
+        </View>
+        <Text style={styles.marqueTexte}>Réussir mon examen civique</Text>
+      </View>
+
       <TouchableOpacity onPress={onRetour} hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}>
         <Text style={styles.retour}>← Revenir au menu de sélection des examens</Text>
       </TouchableOpacity>
@@ -136,21 +153,25 @@ export default function AccueilQuizz({
       </TouchableOpacity>
 
       {!premium && palier < palierMax && (
-        <TouchableOpacity style={styles.bouton} onPress={onDebloquer}>
-          <Text style={styles.boutonTexte}>Débloquer plus de questions</Text>
-          <Text style={styles.sousTexte}>
+        <TouchableOpacity style={styles.boutonAccent} onPress={onDebloquer}>
+          <Text style={styles.boutonAccentTexte}>
+            <Text style={styles.emoji}>🎬</Text> Débloquer plus de questions
+          </Text>
+          <Text style={styles.sousTexteAccent}>
             Regarder une publicité pour débloquer le niveau suivant
           </Text>
         </TouchableOpacity>
       )}
 
       <TouchableOpacity
-        style={[styles.bouton, (premium || achatEnCours) && styles.boutonDesactive]}
+        style={[styles.boutonAccent, (premium || achatEnCours) && styles.boutonDesactive]}
         onPress={onPremium}
         disabled={premium || achatEnCours}
       >
-        <Text style={styles.boutonTexte}>Passer en Premium</Text>
-        <Text style={styles.sousTexte}>
+        <Text style={styles.boutonAccentTexte}>
+          <Text style={styles.emoji}>👑</Text> Passer en Premium
+        </Text>
+        <Text style={styles.sousTexteAccent}>
           {premium
             ? 'Merci pour votre soutien — les trois quizz sont débloqués'
             : achatEnCours
@@ -176,6 +197,10 @@ export default function AccueilQuizz({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: couleurs.papier },
   contenu: { padding: 24, paddingTop: 60, paddingBottom: 40 },
+  marque: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  drapeauMini: { flexDirection: 'row', width: 18, height: 14, marginRight: 8, borderRadius: 2, overflow: 'hidden' },
+  bandeDrapeauMini: { flex: 1 },
+  marqueTexte: { fontSize: 11, fontFamily: polices.texteSemiGras, color: couleurs.ardoise, letterSpacing: 0.3, textTransform: 'uppercase' },
   retour: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, marginBottom: 14 },
   pastille: { width: 30, height: 4, borderRadius: 2, marginBottom: 10 },
   titre: { fontSize: 23, fontFamily: polices.titre, color: couleurs.bleuNuit, marginBottom: 18 },
@@ -194,6 +219,12 @@ const styles = StyleSheet.create({
   boutonTexte: { fontFamily: polices.texteSemiGras, fontSize: 15, color: couleurs.bleuNuit },
   emoji: { fontFamily: polices.texte },
   sousTexte: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 3 },
+  // Même couleur d'accent que le reste de l'application réserve au Premium et aux
+  // publicités récompensées (PubRecompensee, BandeauPublicitaire) : ces deux boutons
+  // s'inscrivent dans un vocabulaire visuel déjà en place, pas un nouveau.
+  boutonAccent: { borderWidth: 1.5, borderColor: couleurs.or, borderRadius: 12, padding: 17, marginBottom: 12, backgroundColor: 'rgba(156,122,60,0.06)' },
+  boutonAccentTexte: { fontFamily: polices.texteSemiGras, fontSize: 15, color: couleurs.or },
+  sousTexteAccent: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 3 },
   boutonDesactive: { opacity: 0.6 },
   erreurAchat: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.rouge, marginTop: -4, marginBottom: 12, lineHeight: 18 },
   liensBas: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
