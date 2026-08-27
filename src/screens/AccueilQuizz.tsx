@@ -11,6 +11,9 @@ interface Props {
   debloquees: number;
   total: number;
   premium: boolean;
+  prixPremium: string;
+  achatEnCours: boolean;
+  erreurAchat: string | null;
   nbQuestionsExamen: number;
   nbSituationsExamen: number;
   seuilExamen: number;
@@ -19,6 +22,9 @@ interface Props {
   onExamen: () => void;
   onDetail: () => void;
   onDebloquer: () => void;
+  onPremium: () => void;
+  onConseils: () => void;
+  onMentionsLegales: () => void;
   onRetour: () => void;
 }
 
@@ -28,6 +34,12 @@ interface Props {
  * Le mode examen est mis en avant parce que c'est l'épreuve réelle, et que s'y confronter tôt
  * est ce qui renseigne le mieux sur le chemin restant. La révision, elle, est le mode où l'on
  * apprend : correction et explication immédiates.
+ *
+ * Porte aussi l'offre Premium et les liens de bas de page. Ils vivaient sur le menu de
+ * sélection, que l'application ne traverse plus à chaque lancement depuis qu'elle retient le
+ * dernier quizz ouvert : les y laisser les aurait rendus invisibles aux habitués — soit
+ * exactement ceux qui achètent. Le Premium y gagne d'ailleurs son contexte, affiché sous la
+ * barre de progression et à côté du déblocage par publicité, les deux façons d'avancer.
  */
 export default function AccueilQuizz({
   nom,
@@ -37,6 +49,9 @@ export default function AccueilQuizz({
   debloquees,
   total,
   premium,
+  prixPremium,
+  achatEnCours,
+  erreurAchat,
   nbQuestionsExamen,
   nbSituationsExamen,
   seuilExamen,
@@ -45,6 +60,9 @@ export default function AccueilQuizz({
   onExamen,
   onDetail,
   onDebloquer,
+  onPremium,
+  onConseils,
+  onMentionsLegales,
   onRetour,
 }: Props) {
   const insets = useSafeAreaInsets();
@@ -125,6 +143,32 @@ export default function AccueilQuizz({
           </Text>
         </TouchableOpacity>
       )}
+
+      <TouchableOpacity
+        style={[styles.bouton, (premium || achatEnCours) && styles.boutonDesactive]}
+        onPress={onPremium}
+        disabled={premium || achatEnCours}
+      >
+        <Text style={styles.boutonTexte}>Passer en Premium</Text>
+        <Text style={styles.sousTexte}>
+          {premium
+            ? 'Merci pour votre soutien — les trois quizz sont débloqués'
+            : achatEnCours
+            ? 'Achat en cours…'
+            : `${prixPremium} · débloque les trois quizz, définitivement`}
+        </Text>
+      </TouchableOpacity>
+
+      {!premium && erreurAchat && <Text style={styles.erreurAchat}>{erreurAchat}</Text>}
+
+      <View style={styles.liensBas}>
+        <TouchableOpacity onPress={onConseils}>
+          <Text style={styles.lien}>Conseils de révision</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onMentionsLegales}>
+          <Text style={styles.lien}>Mentions légales</Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -150,4 +194,8 @@ const styles = StyleSheet.create({
   boutonTexte: { fontFamily: polices.texteSemiGras, fontSize: 15, color: couleurs.bleuNuit },
   emoji: { fontFamily: polices.texte },
   sousTexte: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 3 },
+  boutonDesactive: { opacity: 0.6 },
+  erreurAchat: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.rouge, marginTop: -4, marginBottom: 12, lineHeight: 18 },
+  liensBas: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  lien: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, textDecorationLine: 'underline' },
 });

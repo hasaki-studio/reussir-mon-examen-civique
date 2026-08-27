@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Redirect, useRouter } from 'expo-router';
 import { useEtat } from '../../src/state/EtatContext';
 import { useQuiz } from '../../src/state/QuizContext';
+import { useAchatPremium } from '../../src/state/AchatPremiumContext';
 import { useRemoteConfig } from '../../src/state/RemoteConfigContext';
 import { useQuizzRoute } from '../../src/hooks/useQuizzRoute';
 import { useQuestionsQuizz } from '../../src/hooks/useQuestionsQuizz';
@@ -26,8 +27,16 @@ export default function AccueilQuizzRoute() {
   const router = useRouter();
   const quizz = useQuizzRoute();
   const [pubPalierVisible, setPubPalierVisible] = useState(false);
-  const { etat, etatQuizz, debloquerPalierSuivant, examensRestants } = useEtat();
+  const {
+    etat,
+    etatQuizz,
+    debloquerPalierSuivant,
+    examensRestants,
+    definirDernierQuizz,
+    oublierDernierQuizz,
+  } = useEtat();
   const { demarrerSession } = useQuiz();
+  const { prixPremium, achatEnCours, erreurAchat, lancerAchatPremium } = useAchatPremium();
   const {
     seuilDeblocageTheme,
     examensGratuitsParJour,
@@ -44,6 +53,13 @@ export default function AccueilQuizzRoute() {
     () => questionsDebloquees(questions, palier, etat.premium),
     [questions, palier, etat.premium]
   );
+
+  // Ouvrir un quizz vaut choix : le lancement suivant y reviendra directement, sans repasser
+  // par le menu de sélection. Placé avec les autres hooks, avant le retour anticipé ci-dessous,
+  // et gardé sur `quizz` plutôt que conditionné à l'extérieur.
+  useEffect(() => {
+    if (quizz) definirDernierQuizz(quizz);
+  }, [quizz, definirDernierQuizz]);
 
   // Après tous les hooks : leur ordre doit rester stable d'un rendu à l'autre, même quand la
   // route porte un quizz inconnu (lien profond forgé ou périmé).
@@ -84,6 +100,9 @@ export default function AccueilQuizzRoute() {
         debloquees={debloquees.length}
         total={questions.length}
         premium={etat.premium}
+        prixPremium={prixPremium}
+        achatEnCours={achatEnCours}
+        erreurAchat={erreurAchat}
         nbQuestionsExamen={nbQuestionsExamen}
         nbSituationsExamen={nbSituationsExamen}
         seuilExamen={seuilReussite(nbQuestionsExamen, examenNbQuestions, examenSeuilReussite)}
@@ -95,7 +114,18 @@ export default function AccueilQuizzRoute() {
         // session gratuite du jour se consomme et que la pub apparaît si elle est épuisée.
         onDetail={() => router.push({ pathname: '/[quizz]/themes', params: { quizz } })}
         onDebloquer={() => setPubPalierVisible(true)}
-        onRetour={() => router.back()}
+        onPremium={lancerAchatPremium}
+        onConseils={() => router.push('/conseils')}
+        onMentionsLegales={() => router.push('/mentions')}
+        // Revenir au menu est un geste délibéré : on oublie le quizz mémorisé, pour que
+        // quitter l'application depuis le menu la fasse rouvrir sur le menu.
+        // `replace` et non `back()` : au lancement, la redirection automatique a remplacé le
+        // menu dans la pile plutôt que de l'empiler — il n'y a donc rien derrière, et `back()`
+        // quitterait l'application au lieu de revenir au choix du titre de séjour.
+        onRetour={() => {
+          oublierDernierQuizz();
+          router.replace('/');
+        }}
       />
       <PubRecompensee
         unite={UNITE_PUB_PALIER}

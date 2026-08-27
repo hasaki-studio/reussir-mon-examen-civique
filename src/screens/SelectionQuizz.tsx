@@ -19,15 +19,9 @@ export type LigneQuizz = {
 interface Props {
   lignes: LigneQuizz[];
   premium: boolean;
-  prixPremium: string;
-  achatEnCours: boolean;
-  erreurAchat: string | null;
   // Vide = message d'origine sur la disponibilité hors connexion.
   messageAccueil: string;
   onChoisirQuizz: (quizz: Quizz) => void;
-  onPremium: () => void;
-  onConseils: () => void;
-  onMentionsLegales: () => void;
   onReinitialiser: () => void;
 }
 
@@ -37,18 +31,18 @@ interface Props {
  * Il précède tout le reste parce que les trois parcours ne partagent ni leur progression ni
  * l'intégralité de leur contenu — demander « lequel vous concerne ? » d'emblée évite de faire
  * réviser des questions qui ne tomberont pas.
+ *
+ * N'est traversé qu'au premier lancement, puis à chaque fois qu'on revient volontairement
+ * changer de titre : l'application retient le dernier quizz ouvert et y retourne directement.
+ * L'écran est donc redevenu ce qu'il annonce — un sélecteur. L'offre Premium et les liens de
+ * bas de page, qui n'auraient plus été vus par les habitués, vivent désormais sur l'écran
+ * d'accueil de chaque quizz.
  */
 export default function SelectionQuizz({
   lignes,
   premium,
-  prixPremium,
-  achatEnCours,
-  erreurAchat,
   messageAccueil,
   onChoisirQuizz,
-  onPremium,
-  onConseils,
-  onMentionsLegales,
   onReinitialiser,
 }: Props) {
   const insets = useSafeAreaInsets();
@@ -109,35 +103,9 @@ export default function SelectionQuizz({
         );
       })}
 
-      <TouchableOpacity
-        style={[styles.bouton, (premium || achatEnCours) && styles.boutonDesactive]}
-        onPress={onPremium}
-        disabled={premium || achatEnCours}
-      >
-        <Text style={styles.boutonTexte}>Passer en Premium</Text>
-        <Text style={styles.sousTexte}>
-          {premium
-            ? 'Merci pour votre soutien — les trois quizz sont débloqués'
-            : achatEnCours
-            ? 'Achat en cours…'
-            : `${prixPremium} · débloque les trois quizz, définitivement`}
-        </Text>
-      </TouchableOpacity>
-
-      {!premium && erreurAchat && <Text style={styles.erreurAchat}>{erreurAchat}</Text>}
-
       <View style={styles.horsLigne}>
         <View style={styles.pointVert} />
         <Text style={styles.horsLigneTexte}>{messageAccueil || MESSAGE_ACCUEIL_HORS_LIGNE}</Text>
-      </View>
-
-      <View style={styles.liensBas}>
-        <TouchableOpacity onPress={onConseils}>
-          <Text style={styles.lien}>Conseils de révision</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onMentionsLegales}>
-          <Text style={styles.lien}>Mentions légales</Text>
-        </TouchableOpacity>
       </View>
 
       {__DEV__ && (
@@ -166,16 +134,9 @@ const styles = StyleSheet.create({
   barre: { height: 5, backgroundColor: couleurs.ligne, borderRadius: 4, marginTop: 12, overflow: 'hidden' },
   barreFill: { height: '100%', borderRadius: 4 },
   carteMeta: { fontSize: 12, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 7 },
-  bouton: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, padding: 17, marginBottom: 12, marginTop: 4, backgroundColor: couleurs.papier },
-  boutonDesactive: { opacity: 0.6 },
-  boutonTexte: { fontFamily: polices.texteSemiGras, fontSize: 15, color: couleurs.bleuNuit },
-  sousTexte: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 3 },
-  erreurAchat: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.rouge, marginTop: -4, marginBottom: 12, lineHeight: 18 },
-  horsLigne: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  horsLigne: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   pointVert: { width: 6, height: 6, borderRadius: 3, backgroundColor: couleurs.ok, marginRight: 5 },
   horsLigneTexte: { fontSize: 11, color: couleurs.ok, fontFamily: polices.texteSemiGras },
-  liensBas: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 18 },
-  lien: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, textDecorationLine: 'underline' },
   lienReset: { marginTop: 8 },
   lienResetTexte: { fontSize: 12, fontFamily: polices.texte, color: couleurs.rouge, textDecorationLine: 'underline', textAlign: 'center' },
 });

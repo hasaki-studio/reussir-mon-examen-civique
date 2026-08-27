@@ -38,6 +38,11 @@ type EtatUtilisateur = {
   // Premium à la racine, et non par quizz : un achat débloque les trois, Google Play
   // rattachant de toute façon un achat à une application et non à un contenu.
   premium: boolean;
+  // Dernier quizz ouvert, pour y retourner directement au lancement suivant. Le titre de
+  // séjour visé ne change pas d'un jour à l'autre : reposer la question à chaque démarrage
+  // fait payer à l'usage quotidien un choix qui, lui, n'est fait qu'une fois.
+  // `null` tant qu'aucun quizz n'a été ouvert — le menu de sélection s'affiche alors.
+  dernierQuizz: Quizz | null;
   parQuizz: Record<Quizz, EtatQuizz>;
 };
 
@@ -58,6 +63,7 @@ function etatQuizzParDefaut(): EtatQuizz {
 function etatParDefaut(): EtatUtilisateur {
   return {
     premium: false,
+    dernierQuizz: null,
     parQuizz: QUIZZ_ORDRE.reduce(
       (acc, quizz) => ({ ...acc, [quizz]: etatQuizzParDefaut() }),
       {} as Record<Quizz, EtatQuizz>
@@ -81,6 +87,12 @@ function fusionner(brut: unknown): EtatUtilisateur {
 
   return {
     premium: relu.premium === true,
+    // Relu du stockage, donc pas forcément un quizz encore existant : un quizz retiré d'une
+    // version à l'autre laisserait une clé morte, et la redirection au lancement mènerait à
+    // une route introuvable. On ne garde que ce que la configuration reconnaît.
+    dernierQuizz: QUIZZ_ORDRE.includes(relu.dernierQuizz as Quizz)
+      ? (relu.dernierQuizz as Quizz)
+      : null,
     parQuizz: QUIZZ_ORDRE.reduce((acc, quizz) => {
       acc[quizz] = { ...etatQuizzParDefaut(), ...(parQuizzRelu[quizz] ?? {}) };
       return acc;
@@ -113,6 +125,10 @@ type EtatContextValue = {
   revueGratuiteDisponible: (quizz: Quizz, revuesGratuitesParJour: number) => boolean;
   consommerRevueGratuite: (quizz: Quizz) => void;
   enregistrerResultatExamen: (quizz: Quizz, resultat: ResultatExamen) => void;
+  /** Mémorise le quizz ouvert, pour y revenir directement au lancement suivant. */
+  definirDernierQuizz: (quizz: Quizz) => void;
+  /** Oublie le quizz mémorisé : le prochain lancement repassera par le menu de sélection. */
+  oublierDernierQuizz: () => void;
   reinitialiser: () => void;
 };
 
@@ -269,6 +285,20 @@ export function EtatProvider({ children }: { children: ReactNode }) {
     [majQuizz]
   );
 
+  const definirDernierQuizz = useCallback((quizz: Quizz) => {
+    // Comparaison avant écriture : appelé à chaque rendu de l'écran d'accueil d'un quizz,
+    // un setEtat inconditionnel relancerait l'écriture AsyncStorage à chaque fois.
+    setEtat((precedent) =>
+      precedent.dernierQuizz === quizz ? precedent : { ...precedent, dernierQuizz: quizz }
+    );
+  }, []);
+
+  const oublierDernierQuizz = useCallback(() => {
+    setEtat((precedent) =>
+      precedent.dernierQuizz === null ? precedent : { ...precedent, dernierQuizz: null }
+    );
+  }, []);
+
   const reinitialiser = useCallback(() => {
     setEtat(etatParDefaut());
   }, []);
@@ -289,6 +319,8 @@ export function EtatProvider({ children }: { children: ReactNode }) {
       revueGratuiteDisponible,
       consommerRevueGratuite,
       enregistrerResultatExamen,
+      definirDernierQuizz,
+      oublierDernierQuizz,
       reinitialiser,
     }),
     [
@@ -306,6 +338,8 @@ export function EtatProvider({ children }: { children: ReactNode }) {
       revueGratuiteDisponible,
       consommerRevueGratuite,
       enregistrerResultatExamen,
+      definirDernierQuizz,
+      oublierDernierQuizz,
       reinitialiser,
     ]
   );
