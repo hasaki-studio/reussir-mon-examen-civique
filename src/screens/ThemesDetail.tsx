@@ -16,6 +16,12 @@ interface Props {
   themeDebloque: boolean;
   onSelectionnerTheme: (theme: string) => void;
   onSelectionnerPalier: (palier: number) => void;
+  /**
+   * Un niveau verrouillé reste tapable : c'est ici, face au cadenas, que l'envie de débloquer
+   * se manifeste, pas seulement sur l'écran d'accueil. Débloque toujours le niveau suivant
+   * (même logique que là-bas) — taper un niveau lointain avance donc d'un cran, pas jusqu'à lui.
+   */
+  onDebloquerPalier: () => void;
   onRetour: () => void;
 }
 
@@ -27,6 +33,7 @@ export default function ThemesDetail({
   themeDebloque,
   onSelectionnerTheme,
   onSelectionnerPalier,
+  onDebloquerPalier,
   onRetour,
 }: Props) {
   const [mode, setMode] = useState<Mode>(themeDebloque ? 'theme' : 'palier');
@@ -95,8 +102,9 @@ export default function ThemesDetail({
               <TouchableOpacity
                 key={palier.numero}
                 style={[styles.carte, verrouille && styles.carteVerrouillee]}
-                onPress={() => !verrouille && onSelectionnerPalier(palier.numero)}
-                disabled={verrouille}
+                onPress={() =>
+                  verrouille ? onDebloquerPalier() : onSelectionnerPalier(palier.numero)
+                }
               >
                 <View style={styles.carteTexteZone}>
                   <Text style={[styles.carteTexte, verrouille && styles.carteTexteVerrouille]}>
@@ -104,7 +112,7 @@ export default function ThemesDetail({
                   </Text>
                   <Text style={styles.carteCompteur}>
                     {palier.nb} question{palier.nb > 1 ? 's' : ''}
-                    {verrouille ? ' · non débloqué' : ''}
+                    {verrouille ? ' · publicité pour débloquer' : ''}
                   </Text>
                 </View>
                 <Text style={styles.fleche}>{verrouille ? '🔒' : '→'}</Text>

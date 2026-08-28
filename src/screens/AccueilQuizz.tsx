@@ -153,25 +153,25 @@ export default function AccueilQuizz({
       </TouchableOpacity>
 
       {!premium && palier < palierMax && (
-        <TouchableOpacity style={styles.boutonAccent} onPress={onDebloquer}>
-          <Text style={styles.boutonAccentTexte}>
+        <TouchableOpacity style={styles.bouton} onPress={onDebloquer}>
+          <Text style={styles.boutonTexte}>
             <Text style={styles.emoji}>🎬</Text> Débloquer plus de questions
           </Text>
-          <Text style={styles.sousTexteAccent}>
+          <Text style={styles.sousTexte}>
             Regarder une publicité pour débloquer le niveau suivant
           </Text>
         </TouchableOpacity>
       )}
 
       <TouchableOpacity
-        style={[styles.boutonAccent, (premium || achatEnCours) && styles.boutonDesactive]}
+        style={[styles.bouton, (premium || achatEnCours) && styles.boutonDesactive]}
         onPress={onPremium}
         disabled={premium || achatEnCours}
       >
-        <Text style={styles.boutonAccentTexte}>
+        <Text style={styles.boutonTexte}>
           <Text style={styles.emoji}>👑</Text> Passer en Premium
         </Text>
-        <Text style={styles.sousTexteAccent}>
+        <Text style={styles.sousTexte}>
           {premium
             ? 'Merci pour votre soutien — les trois quizz sont débloqués'
             : achatEnCours
@@ -219,12 +219,6 @@ const styles = StyleSheet.create({
   boutonTexte: { fontFamily: polices.texteSemiGras, fontSize: 15, color: couleurs.bleuNuit },
   emoji: { fontFamily: polices.texte },
   sousTexte: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 3 },
-  // Même couleur d'accent que le reste de l'application réserve au Premium et aux
-  // publicités récompensées (PubRecompensee, BandeauPublicitaire) : ces deux boutons
-  // s'inscrivent dans un vocabulaire visuel déjà en place, pas un nouveau.
-  boutonAccent: { borderWidth: 1.5, borderColor: couleurs.or, borderRadius: 12, padding: 17, marginBottom: 12, backgroundColor: 'rgba(156,122,60,0.06)' },
-  boutonAccentTexte: { fontFamily: polices.texteSemiGras, fontSize: 15, color: couleurs.or },
-  sousTexteAccent: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 3 },
   boutonDesactive: { opacity: 0.6 },
   erreurAchat: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.rouge, marginTop: -4, marginBottom: 12, lineHeight: 18 },
   liensBas: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },

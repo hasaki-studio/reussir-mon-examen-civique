@@ -9,10 +9,11 @@ import {
   logSessionDetailDemarree,
   logSessionDetailQuotaAtteint,
   logPubSessionDetailVisionnee,
+  logPubPalierVisionnee,
 } from '../../src/services/analytics';
 import ThemesDetail, { EntreePalier, EntreeTheme } from '../../src/screens/ThemesDetail';
 import PubRecompensee from '../../src/components/PubRecompensee';
-import { UNITE_PUB_SESSION_DETAIL } from '../../src/services/ads';
+import { UNITE_PUB_SESSION_DETAIL, UNITE_PUB_PALIER } from '../../src/services/ads';
 
 type Selection = { titre: string; theme?: string; palier?: number };
 
@@ -20,12 +21,14 @@ export default function ThemesRoute() {
   const router = useRouter();
   const quizz = useQuizzRoute();
   const [pubSessionEnAttente, setPubSessionEnAttente] = useState<Selection | null>(null);
+  const [pubPalierVisible, setPubPalierVisible] = useState(false);
   const {
     etat,
     etatQuizz,
     sessionDetailGratuiteDisponible,
     sessionsDetailRestantes,
     consommerSessionDetailGratuite,
+    debloquerPalierSuivant,
   } = useEtat();
   const { seuilDeblocageTheme, sessionsDetailGratuitesParJour } = useRemoteConfig();
   const { questions, palierMax } = useQuestionsQuizz(quizz ?? 'csp');
@@ -95,7 +98,24 @@ export default function ThemesRoute() {
         onSelectionnerPalier={(numero) =>
           ouvrirListeDetail({ titre: `Niveau ${numero}`, palier: numero })
         }
+        onDebloquerPalier={() => setPubPalierVisible(true)}
         onRetour={() => router.back()}
+      />
+      <PubRecompensee
+        unite={UNITE_PUB_PALIER}
+        visible={pubPalierVisible}
+        titre="Débloquer la suite"
+        description="Regardez une publicité pour débloquer le niveau suivant et de nouvelles questions."
+        onVisionnee={() => {
+          if (palier < palierMax) {
+            logPubPalierVisionnee({ palierAvant: palier, palierApres: palier + 1 });
+          }
+        }}
+        onTermine={() => {
+          debloquerPalierSuivant(quizz, palierMax, seuilDeblocageTheme);
+          setPubPalierVisible(false);
+        }}
+        onAnnuler={() => setPubPalierVisible(false)}
       />
       <PubRecompensee
         unite={UNITE_PUB_SESSION_DETAIL}
