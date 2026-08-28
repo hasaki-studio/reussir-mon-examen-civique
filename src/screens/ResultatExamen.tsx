@@ -174,9 +174,8 @@ export default function ResultatExamen({
 
       {/* La répartition des erreurs par thème, affichée dans tous les cas et non plus seulement
           derrière le verrou. Elle ne dévoile aucune correction — ni bonne réponse, ni
-          explication — mais elle dit où le terrain est faible, ce qui est précisément ce qui
-          rend la révision par thème évidente. La cacher à ceux qui ont déjà vu leurs erreurs
-          revenait à leur retirer la seule vue d'ensemble de l'écran. */}
+          explication — mais elle dit où le terrain est faible. Elle se suffit à elle-même :
+          l'invitation à travailler ces thèmes est portée par le bouton du bas, qui la nomme. */}
       {ratees.length > 0 && (
         <View style={styles.recap}>
           <Text style={styles.recapTitre}>Vos erreurs par thème</Text>
@@ -194,11 +193,6 @@ export default function ResultatExamen({
               dont {nbSituations} mise{nbSituations > 1 ? 's' : ''} en situation
             </Text>
           )}
-          <Text style={styles.recapIncitation}>
-            {masque === 'revue'
-              ? 'La correction de chacune vous attend juste en dessous. Vous pouvez aussi reprendre ces thèmes un par un en révision détaillée.'
-              : "Reprenez ces thèmes un par un en révision détaillée : c'est là que les erreurs deviennent des acquis."}
-          </Text>
         </View>
       )}
 
@@ -249,17 +243,19 @@ export default function ResultatExamen({
         </SectionRepliable>
       )}
 
-      {/* Sans message : l'incitation à réviser par thème est portée par le récap des erreurs,
-          plus haut, là où l'utilisateur voit précisément quels thèmes sont en cause. La
-          répéter ici n'ajouterait rien qu'une ligne à faire défiler. */}
-      <TouchableOpacity style={styles.boutonSuite} onPress={onReviserThemes}>
-        <Text style={styles.boutonSuiteTexte}>
-          <Text style={styles.emoji}>📚</Text> Réviser en détail
+      {/* Le bouton porte l'invitation plutôt qu'un paragraphe au-dessus : « Entraînez-vous sur
+          chaque thème » dit à la fois ce qu'on y fait et pourquoi, juste après la liste des
+          thèmes fautifs. Aucun texte à faire défiler entre le constat et l'action. */}
+      <TouchableOpacity style={[styles.boutonAction, styles.premierBouton]} onPress={onReviserThemes}>
+        <Text style={styles.boutonActionTexte}>
+          <Text style={styles.emoji}>📚</Text> Entraînez-vous sur chaque thème
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.boutonPrincipal} onPress={onRecommencer}>
-        <Text style={styles.boutonPrincipalTexte}>
+      {/* Même traitement que le bouton ci-dessus : le bleu nuit plein reste réservé aux boutons
+          qui déclenchent une publicité, seuls à devoir se détacher du reste. */}
+      <TouchableOpacity style={styles.boutonAction} onPress={onRecommencer}>
+        <Text style={styles.boutonActionTexte}>
           <Text style={styles.emoji}>📝</Text> Refaire un examen blanc
         </Text>
       </TouchableOpacity>
@@ -281,7 +277,6 @@ const styles = StyleSheet.create({
   boutonVerrou: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 22, alignItems: 'center', marginTop: 18 },
   recap: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, backgroundColor: couleurs.blancCasse, padding: 16, marginBottom: 20 },
   recapTitre: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, marginBottom: 12 },
-  recapIncitation: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 18, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: couleurs.ligne },
   repartitionLigne: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   repartitionPuce: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
   repartitionTheme: { flex: 1, fontSize: 12.5, fontFamily: polices.texte, color: couleurs.bleuNuit },
@@ -318,8 +313,9 @@ const styles = StyleSheet.create({
   boutonPrincipalTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, textAlign: 'center' },
   boutonSecondaire: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, alignItems: 'center', marginTop: 10 },
   boutonSecondaireTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
-  boutonSuite: { backgroundColor: couleurs.papier, borderWidth: 1.5, borderColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, alignItems: 'center', marginTop: 22 },
-  boutonSuiteTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
+  boutonAction: { backgroundColor: couleurs.papier, borderWidth: 1.5, borderColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, alignItems: 'center', marginTop: 10 },
+  premierBouton: { marginTop: 22 },
+  boutonActionTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
   // Emoji isolé dans sa propre police : accolé à une police semi-grasse personnalisée, il se
   // rend en gris délavé sur iOS. Même traitement que sur l'écran d'accueil d'un quizz.
   emoji: { fontFamily: polices.texte },
