@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { couleurs } from '../theme/colors';
 import { polices } from '../theme/typographie';
@@ -55,17 +55,18 @@ export default function SelectionQuizz({
         { paddingBottom: styles.contenu.paddingBottom + insets.bottom },
       ]}
     >
+      {/* Le logo réel de l'application, et non plus un tricolore redessiné : c'est lui que
+          l'utilisateur a touché sur son écran d'accueil pour arriver ici, et c'est lui qu'on
+          retrouve en réduction sur l'écran de chaque quizz. Une seule identité partout.
+          Servi depuis logo-app.png (256 px, 63 Ko) plutôt que icon.png (1024 px, 1,3 Mo) :
+          l'icône de lancement reste la grande, le bundle JS n'embarque que ce qu'il affiche. */}
       <View style={styles.illustration}>
-        <View style={styles.drapeau}>
-          <View style={[styles.bandeDrapeau, { backgroundColor: '#1C2B49' }]} />
-          <View
-            style={[
-              styles.bandeDrapeau,
-              { backgroundColor: '#F6F3EC', borderWidth: 1, borderColor: '#DEDACD' },
-            ]}
-          />
-          <View style={[styles.bandeDrapeau, { backgroundColor: '#A62B2B' }]} />
-        </View>
+        <Image
+          source={require('../../assets/logo-app.png')}
+          style={styles.logo}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+        />
       </View>
       {/* Même hiérarchie que l'application sœur : le verbe en grand et dans la teinte chaude,
           le nom du produit dessous en bleu nuit. Les deux applications se reconnaissent ainsi
@@ -121,8 +122,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: couleurs.papier },
   contenu: { padding: 24, paddingTop: 60, paddingBottom: 40 },
   illustration: { alignItems: 'center', marginBottom: 18 },
-  drapeau: { flexDirection: 'row', width: 66, height: 56 },
-  bandeDrapeau: { width: 22, height: 56 },
+  logo: { width: 76, height: 76, borderRadius: 17 },
   accroche: { fontSize: 34, lineHeight: 40, fontFamily: polices.titreGras, color: couleurs.or },
   titre: { fontSize: 25, lineHeight: 31, fontFamily: polices.titreGras, color: couleurs.bleuNuit },
   sousTitre: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 6, marginBottom: 18 },

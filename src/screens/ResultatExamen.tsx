@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { couleurs, couleurTheme } from '../theme/colors';
 import { polices } from '../theme/typographie';
@@ -32,6 +32,40 @@ interface Props {
   onDevoiler: () => void;
   onRecommencer: () => void;
   onRetour: () => void;
+}
+
+/**
+ * Section dont le contenu se déplie au toucher.
+ *
+ * Les deux listes de cet écran peuvent compter plusieurs dizaines de cartes : au-delà d'un
+ * certain score, dérouler l'intégralité de ses bonnes réponses pour atteindre le bas de page
+ * devient une corvée, et la revue des erreurs se retrouve enterrée. L'en-tête reste toujours
+ * visible et porte le décompte — l'information « combien » ne demande pas d'ouvrir.
+ */
+function SectionRepliable({
+  titre,
+  ouvertParDefaut,
+  children,
+}: {
+  titre: string;
+  ouvertParDefaut: boolean;
+  children: ReactNode;
+}) {
+  const [ouvert, setOuvert] = useState(ouvertParDefaut);
+  return (
+    <>
+      <TouchableOpacity
+        style={styles.sectionEntete}
+        onPress={() => setOuvert((o) => !o)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: ouvert }}
+      >
+        <Text style={styles.sousTitreListe}>{titre}</Text>
+        <Text style={styles.chevron}>{ouvert ? '▾' : '▸'}</Text>
+      </TouchableOpacity>
+      {ouvert && children}
+    </>
+  );
 }
 
 export default function ResultatExamen({
@@ -106,12 +140,16 @@ export default function ResultatExamen({
         </Text>
       </View>
 
+      {/* Repliée par défaut : ce sont les questions déjà maîtrisées, celles dont on a le moins
+          besoin. Les laisser ouvertes ferait défiler tout ce qu'on sait déjà avant d'atteindre
+          ce qu'on ne sait pas. */}
       {bonnes.length > 0 && (
-        <>
-          <Text style={styles.sousTitreListe}>
-            {bonnes.length} bonne{bonnes.length > 1 ? 's' : ''} réponse
-            {bonnes.length > 1 ? 's' : ''}
-          </Text>
+        <SectionRepliable
+          ouvertParDefaut={false}
+          titre={`${bonnes.length} bonne${bonnes.length > 1 ? 's' : ''} réponse${
+            bonnes.length > 1 ? 's' : ''
+          }`}
+        >
           {bonnes.map(({ question }) => (
             <View key={question.id} style={styles.carteBonne}>
               <View style={styles.rateeEntete}>
@@ -126,7 +164,7 @@ export default function ResultatExamen({
               <Text style={styles.bonneReponseTexte}>✓ {question.choix[question.bonne]}</Text>
             </View>
           ))}
-        </>
+        </SectionRepliable>
       )}
 
       {/* La revue des erreurs est le véritable contenu de cet écran : le score seul n'apprend
@@ -165,10 +203,13 @@ export default function ResultatExamen({
           </TouchableOpacity>
         </View>
       ) : (
-        <>
-          <Text style={styles.sousTitreListe}>
-            {ratees.length} question{ratees.length > 1 ? 's' : ''} à revoir
-          </Text>
+        // Ouverte par défaut, elle : c'est le contenu de l'écran, et celui pour lequel la
+        // publicité vient d'être regardée. La replier reste possible, l'ouvrir ne devrait pas
+        // être un préalable.
+        <SectionRepliable
+          ouvertParDefaut
+          titre={`${ratees.length} question${ratees.length > 1 ? 's' : ''} à revoir`}
+        >
           {ratees.map(({ question, choisi }) => (
             <View key={question.id} style={styles.carteRatee}>
               <View style={styles.rateeEntete}>
@@ -185,7 +226,7 @@ export default function ResultatExamen({
               <Text style={styles.rateeExplication}>{question.explication}</Text>
             </View>
           ))}
-        </>
+        </SectionRepliable>
       )}
 
       <TouchableOpacity style={styles.boutonPrincipal} onPress={onRecommencer}>
@@ -222,7 +263,9 @@ const styles = StyleSheet.create({
   pourcentage: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 4 },
   verdict: { fontSize: 15, fontFamily: polices.texteGras, marginTop: 10, textAlign: 'center' },
   aucuneErreur: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', marginBottom: 20 },
-  sousTitreListe: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.ardoise, marginBottom: 12 },
+  sectionEntete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4, marginBottom: 8 },
+  sousTitreListe: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.ardoise },
+  chevron: { fontSize: 13, color: couleurs.ardoise, fontFamily: polices.texte, paddingLeft: 12 },
   carteRatee: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, padding: 15, marginBottom: 10 },
   rateeEntete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   rateeTheme: { flexShrink: 1, fontSize: 10.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.or, fontFamily: polices.texteSemiGras },
