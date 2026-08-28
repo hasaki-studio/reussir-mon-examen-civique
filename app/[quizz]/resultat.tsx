@@ -11,15 +11,24 @@ import {
   logPubExamenVisionnee,
   logPubResultatVisionnee,
 } from '../../src/services/analytics';
-import ResultatExamen, { QuestionCorrecte, QuestionRatee } from '../../src/screens/ResultatExamen';
+import ResultatExamen, {
+  ComparatifExamens,
+  QuestionCorrecte,
+  QuestionRatee,
+} from '../../src/screens/ResultatExamen';
 import PubRecompensee from '../../src/components/PubRecompensee';
 import { UNITE_PUB_EXAMEN, UNITE_PUB_RESULTAT_EXAMEN } from '../../src/services/ads';
 
 export default function ResultatRoute() {
   const router = useRouter();
   const quizz = useQuizzRoute();
-  const { etat, enregistrerResultatExamen, revueGratuiteDisponible, consommerRevueGratuite } =
-    useEtat();
+  const {
+    etat,
+    etatQuizz,
+    enregistrerResultatExamen,
+    revueGratuiteDisponible,
+    consommerRevueGratuite,
+  } = useEtat();
   const { sessionQuiz, score, terminerSession } = useQuiz();
   const { examenNbQuestions, examenSeuilReussite, resultatVerrouille, revuesGratuitesParJour } =
     useRemoteConfig();
@@ -31,6 +40,22 @@ export default function ResultatRoute() {
   const [revueGratuite] = useState(() =>
     revueGratuiteDisponible(quizz ?? 'csp', revuesGratuitesParJour)
   );
+
+  // Photographié au montage, avant que l'effet plus bas n'y ajoute l'examen qu'on vient de
+  // passer : sans cela, « meilleur score précédent » inclurait le score courant et l'écran
+  // ne pourrait jamais annoncer de record.
+  const [comparatif] = useState<ComparatifExamens>(() => {
+    // Historique le plus récent en tête (`enregistrerResultatExamen` empile par l'avant).
+    const precedents = etatQuizz(quizz ?? 'csp').derniersResultats;
+    const pourcentages = precedents.map((r) =>
+      r.total === 0 ? 0 : Math.round((r.score / r.total) * 100)
+    );
+    return {
+      nbPrecedents: precedents.length,
+      pourcentagePrecedent: pourcentages[0] ?? null,
+      meilleurPrecedent: pourcentages.length > 0 ? Math.max(...pourcentages) : null,
+    };
+  });
 
   // Le score se calcule et s'enregistre dans tous les cas (voir l'effet plus bas) : seul son
   // affichage dépend de la clé. Jamais rien de masqué en Premium, une fois la pub vue, ou tant
@@ -125,6 +150,7 @@ export default function ResultatRoute() {
         reussi={reussi}
         ratees={ratees}
         bonnes={bonnes}
+        comparatif={comparatif}
         masque={masque}
         onDevoiler={() => setPubResultatVisible(true)}
         onRecommencer={examen.lancerExamen}

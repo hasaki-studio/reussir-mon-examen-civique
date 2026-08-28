@@ -7,6 +7,26 @@ import { Question } from '../../services/firebase';
 export type QuestionRatee = { question: Question; choisi: number };
 export type QuestionCorrecte = { question: Question };
 
+/**
+ * Ce que valaient les examens précédents, sur ce quizz, avant celui qu'on vient de passer.
+ *
+ * Comparé en pourcentages et non en points bruts : le nombre de questions posées varie avec
+ * le palier atteint et la configuration distante, donc 28/30 et 34/40 ne se comparent pas
+ * directement. Les pourcentages, si.
+ */
+export type ComparatifExamens = {
+  /**
+   * Examens déjà passés sur ce quizz, dans la limite de ce que l'état conserve
+   * (MAX_RESULTATS_CONSERVES). Ce n'est donc pas un compteur de vie : au-delà, il plafonne.
+   * Les libellés en tiennent compte et parlent de « vos N derniers examens ».
+   */
+  nbPrecedents: number;
+  /** Pourcentage de l'examen juste avant celui-ci. Null au tout premier. */
+  pourcentagePrecedent: number | null;
+  /** Meilleur pourcentage atteint avant celui-ci. Null au tout premier. */
+  meilleurPrecedent: number | null;
+};
+
 interface Props {
   score: number;
   total: number;
@@ -19,6 +39,7 @@ interface Props {
    * explication) reste derrière la pub — voir `masque`.
    */
   bonnes: QuestionCorrecte[];
+  comparatif: ComparatifExamens;
   /**
    * Ce qui reste masqué tant que la publicité n'a pas été regardée :
    * - `rien`  : tout est visible (Premium, pub déjà vue, ou clé Remote Config à « aucun ») ;
@@ -77,6 +98,7 @@ export default function ResultatExamen({
   reussi,
   ratees,
   bonnes,
+  comparatif,
   masque,
   onDevoiler,
   onRecommencer,
@@ -84,6 +106,9 @@ export default function ResultatExamen({
   onRetour,
 }: Props) {
   const pourcentage = total === 0 ? 0 : Math.round((score / total) * 100);
+  // Un premier examen n'est un record que par défaut : le dire n'apprendrait rien.
+  const record =
+    comparatif.meilleurPrecedent !== null && pourcentage > comparatif.meilleurPrecedent;
 
   // Aperçu gratuit de la revue verrouillée : la répartition, jamais le contenu (ni la bonne
   // réponse, ni l'explication). De quoi donner envie de regarder la publicité sans vider son
@@ -143,6 +168,18 @@ export default function ResultatExamen({
             ? `Réussi — ${seuil} bonnes réponses exigées`
             : `Non atteint — ${seuil} bonnes réponses exigées`}
         </Text>
+
+        {/* Un score seul ne dit pas si l'on progresse. Les examens déjà passés sont conservés
+            depuis toujours dans l'état local ; les rappeler ici, au moment où la comparaison
+            a le plus de valeur, transforme une note en tendance. */}
+        <Text style={styles.comparatif}>
+          {comparatif.nbPrecedents === 0
+            ? 'Premier examen blanc sur ce titre : il servira de repère aux suivants.'
+            : comparatif.nbPrecedents === 1
+            ? `Examen précédent : ${comparatif.pourcentagePrecedent} %`
+            : `Précédent ${comparatif.pourcentagePrecedent} % · meilleur ${comparatif.meilleurPrecedent} % sur vos ${comparatif.nbPrecedents} derniers examens`}
+        </Text>
+        {record && <Text style={styles.comparatifRecord}>Nouveau meilleur score</Text>}
       </View>
 
       {/* Repliée par défaut : ce sont les questions déjà maîtrisées, celles dont on a le moins
@@ -289,6 +326,8 @@ const styles = StyleSheet.create({
   texteEchoue: { color: couleurs.rouge },
   pourcentage: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 4 },
   verdict: { fontSize: 15, fontFamily: polices.texteGras, marginTop: 10, textAlign: 'center' },
+  comparatif: { fontSize: 11.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', lineHeight: 17, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: couleurs.ligne, alignSelf: 'stretch' },
+  comparatifRecord: { fontSize: 12, fontFamily: polices.texteSemiGras, color: couleurs.or, textAlign: 'center', marginTop: 5 },
   aucuneErreur: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', marginBottom: 20 },
   // Une ligne de texte gris se lisait comme une légende, pas comme une commande : rien
   // n'indiquait qu'on pouvait appuyer dessus. Traitée en rangée à part entière — fond, cadre,
