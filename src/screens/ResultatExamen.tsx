@@ -11,9 +11,6 @@ export type ResultatPrecedent = {
   score: number;
   total: number;
   pourcentage: number;
-  /** Jour de passage, au format AAAA-MM-JJ. */
-  date: string;
-  reussi: boolean;
 };
 
 /**
@@ -34,12 +31,21 @@ export type ComparatifExamens = {
   precedent: ResultatPrecedent | null;
   /** Meilleur pourcentage atteint avant celui-ci. Null au tout premier. */
   meilleurPrecedent: number | null;
+  /** Somme des pourcentages précédents, pour une moyenne exacte incluant l'examen du jour. */
+  sommePrecedents: number;
 };
 
-/** AAAA-MM-JJ tel que stocké → JJ/MM/AAAA, la forme lue en France. */
-function dateLisible(iso: string): string {
-  const [annee, mois, jour] = iso.split('-');
-  return annee && mois && jour ? `${jour}/${mois}/${annee}` : iso;
+/**
+ * Conseil tiré du score du jour.
+ *
+ * Les seuils ont été donnés en points sur un examen de 40 questions (27 et 35) ; ils sont
+ * convertis en pourcentages parce que le nombre de questions posées varie avec le palier
+ * atteint et la configuration distante. Un 27/30 ne mérite pas le conseil d'un 27/40.
+ */
+function conseilSelonScore(pourcentage: number): string {
+  if (pourcentage < (27 / 40) * 100) return "Révisez les thèmes où vous avez le plus d'erreurs";
+  if (pourcentage < (35 / 40) * 100) return 'Continuez à passer les examens blancs';
+  return 'Bravo ! Restez en forme avec le mode Express';
 }
 
 interface Props {
@@ -124,7 +130,12 @@ export default function ResultatExamen({
   // Un premier examen n'est un record que par défaut : le dire n'apprendrait rien.
   const record =
     comparatif.meilleurPrecedent !== null && pourcentage > comparatif.meilleurPrecedent;
-  const ecart = comparatif.precedent === null ? 0 : pourcentage - comparatif.precedent.pourcentage;
+  // Moyenne et meilleur score incluent l'examen qu'on vient de passer : après l'avoir terminé,
+  // « votre moyenne » sans lui serait une moyenne d'avant.
+  const moyenne = Math.round(
+    (comparatif.sommePrecedents + pourcentage) / (comparatif.nbPrecedents + 1)
+  );
+  const meilleur = Math.max(comparatif.meilleurPrecedent ?? 0, pourcentage);
 
   // Aperçu gratuit de la revue verrouillée : la répartition, jamais le contenu (ni la bonne
   // réponse, ni l'explication). De quoi donner envie de regarder la publicité sans vider son
@@ -206,52 +217,23 @@ export default function ResultatExamen({
               </View>
 
               <View style={styles.comparatifLigne}>
-                <Text style={styles.comparatifLabel}>Passé le</Text>
-                <Text style={styles.comparatifValeur}>
-                  {dateLisible(comparatif.precedent.date)}
-                </Text>
+                <Text style={styles.comparatifLabel}>Votre moyenne</Text>
+                <Text style={styles.comparatifValeur}>{moyenne} %</Text>
               </View>
 
               <View style={styles.comparatifLigne}>
-                <Text style={styles.comparatifLabel}>Verdict</Text>
-                <Text
-                  style={[
-                    styles.comparatifValeur,
-                    comparatif.precedent.reussi ? styles.texteReussi : styles.texteEchoue,
-                  ]}
-                >
-                  {comparatif.precedent.reussi ? 'Réussi' : 'Non atteint'}
-                </Text>
+                <Text style={styles.comparatifLabel}>Votre meilleur score</Text>
+                <Text style={styles.comparatifValeur}>{meilleur} %</Text>
               </View>
-
-              {/* L'écart est ce que la comparaison a de plus parlant : deux scores côte à côte
-                  demandent un calcul, la différence se lit. En points de pourcentage, la seule
-                  unité comparable quand le nombre de questions posées change d'un examen à
-                  l'autre. */}
-              <View style={styles.comparatifLigne}>
-                <Text style={styles.comparatifLabel}>Écart avec aujourd'hui</Text>
-                <Text
-                  style={[
-                    styles.comparatifValeur,
-                    ecart > 0 ? styles.texteReussi : ecart < 0 ? styles.texteEchoue : null,
-                  ]}
-                >
-                  {ecart > 0 ? `+${ecart}` : ecart} point{Math.abs(ecart) > 1 ? 's' : ''}
-                </Text>
-              </View>
-
-              {comparatif.nbPrecedents > 1 && (
-                <View style={styles.comparatifLigne}>
-                  <Text style={styles.comparatifLabel}>
-                    Meilleur sur vos {comparatif.nbPrecedents} derniers
-                  </Text>
-                  <Text style={styles.comparatifValeur}>{comparatif.meilleurPrecedent} %</Text>
-                </View>
-              )}
 
               {record && <Text style={styles.comparatifRecord}>Nouveau meilleur score</Text>}
             </>
           )}
+
+          {/* Sur sa propre ligne, pleine largeur : le conseil est une phrase, pas une valeur à
+              cadrer à droite face à son intitulé. Tiré du score du jour, le seul sur lequel il
+              y ait quelque chose à faire. */}
+          <Text style={styles.conseil}>{conseilSelonScore(pourcentage)}</Text>
         </View>
       </View>
 
@@ -406,6 +388,7 @@ const styles = StyleSheet.create({
   comparatifLabel: { flexShrink: 1, fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise },
   comparatifValeur: { fontSize: 12.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
   comparatifRecord: { fontSize: 12, fontFamily: polices.texteSemiGras, color: couleurs.or, textAlign: 'center', marginTop: 8 },
+  conseil: { fontSize: 12.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center', lineHeight: 18, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: couleurs.ligne },
   aucuneErreur: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', marginBottom: 20 },
   // Une ligne de texte gris se lisait comme une légende, pas comme une commande : rien
   // n'indiquait qu'on pouvait appuyer dessus. Traitée en rangée à part entière — fond, cadre,

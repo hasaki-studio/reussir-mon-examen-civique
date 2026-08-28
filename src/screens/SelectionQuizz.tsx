@@ -122,11 +122,12 @@ const styles = StyleSheet.create({
   sousTitre: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 6, marginBottom: 18 },
   carte: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 14, padding: 18, marginBottom: 14, backgroundColor: couleurs.papier, flexDirection: 'row', alignItems: 'center', gap: 12 },
   carteTexteZone: { flex: 1 },
-  // Un cran au-dessus du badge de thème (11 px) : ici la capsule porte le titre de la carte,
-  // là-bas elle n'annonçait que le thème d'une question déjà à l'écran.
-  badge: { alignSelf: 'flex-start', maxWidth: '100%', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20 },
-  badgeTexte: { fontSize: 12.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.papier, fontFamily: polices.texteSemiGras },
-  carteSousTitre: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 9 },
+  // Dimensions d'origine, celles de la capsule qui accompagnait le titre : agrandie pour
+  // tenir lieu de titre, elle occupait presque toute la largeur sur « Carte de séjour
+  // pluriannuelle », le plus long des trois intitulés.
+  badge: { alignSelf: 'flex-start', maxWidth: '100%', paddingVertical: 4, paddingHorizontal: 9, borderRadius: 20 },
+  badgeTexte: { fontSize: 10.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.papier, fontFamily: polices.texteSemiGras },
+  carteSousTitre: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 8 },
   fleche: { fontSize: 17, fontFamily: polices.texte },
   horsLigne: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   pointVert: { width: 6, height: 6, borderRadius: 3, backgroundColor: couleurs.ok, marginRight: 5 },
