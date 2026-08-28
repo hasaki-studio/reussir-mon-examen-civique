@@ -7,6 +7,15 @@ import { Question } from '../../services/firebase';
 export type QuestionRatee = { question: Question; choisi: number };
 export type QuestionCorrecte = { question: Question };
 
+export type ResultatPrecedent = {
+  score: number;
+  total: number;
+  pourcentage: number;
+  /** Jour de passage, au format AAAA-MM-JJ. */
+  date: string;
+  reussi: boolean;
+};
+
 /**
  * Ce que valaient les examens précédents, sur ce quizz, avant celui qu'on vient de passer.
  *
@@ -21,11 +30,17 @@ export type ComparatifExamens = {
    * Les libellés en tiennent compte et parlent de « vos N derniers examens ».
    */
   nbPrecedents: number;
-  /** Pourcentage de l'examen juste avant celui-ci. Null au tout premier. */
-  pourcentagePrecedent: number | null;
+  /** L'examen juste avant celui-ci. Null au tout premier. */
+  precedent: ResultatPrecedent | null;
   /** Meilleur pourcentage atteint avant celui-ci. Null au tout premier. */
   meilleurPrecedent: number | null;
 };
+
+/** AAAA-MM-JJ tel que stocké → JJ/MM/AAAA, la forme lue en France. */
+function dateLisible(iso: string): string {
+  const [annee, mois, jour] = iso.split('-');
+  return annee && mois && jour ? `${jour}/${mois}/${annee}` : iso;
+}
 
 interface Props {
   score: number;
@@ -109,6 +124,7 @@ export default function ResultatExamen({
   // Un premier examen n'est un record que par défaut : le dire n'apprendrait rien.
   const record =
     comparatif.meilleurPrecedent !== null && pourcentage > comparatif.meilleurPrecedent;
+  const ecart = comparatif.precedent === null ? 0 : pourcentage - comparatif.precedent.pourcentage;
 
   // Aperçu gratuit de la revue verrouillée : la répartition, jamais le contenu (ni la bonne
   // réponse, ni l'explication). De quoi donner envie de regarder la publicité sans vider son
@@ -170,16 +186,73 @@ export default function ResultatExamen({
         </Text>
 
         {/* Un score seul ne dit pas si l'on progresse. Les examens déjà passés sont conservés
-            depuis toujours dans l'état local ; les rappeler ici, au moment où la comparaison
+            depuis toujours dans l'état local ; les détailler ici, au moment où la comparaison
             a le plus de valeur, transforme une note en tendance. */}
-        <Text style={styles.comparatif}>
-          {comparatif.nbPrecedents === 0
-            ? 'Premier examen blanc sur ce titre : il servira de repère aux suivants.'
-            : comparatif.nbPrecedents === 1
-            ? `Examen précédent : ${comparatif.pourcentagePrecedent} %`
-            : `Précédent ${comparatif.pourcentagePrecedent} % · meilleur ${comparatif.meilleurPrecedent} % sur vos ${comparatif.nbPrecedents} derniers examens`}
-        </Text>
-        {record && <Text style={styles.comparatifRecord}>Nouveau meilleur score</Text>}
+        <View style={styles.comparatif}>
+          {comparatif.precedent === null ? (
+            <Text style={styles.comparatifVide}>
+              Premier examen blanc sur ce titre : il servira de repère aux suivants.
+            </Text>
+          ) : (
+            <>
+              <Text style={styles.comparatifTitre}>Votre dernier examen blanc</Text>
+
+              <View style={styles.comparatifLigne}>
+                <Text style={styles.comparatifLabel}>Score</Text>
+                <Text style={styles.comparatifValeur}>
+                  {comparatif.precedent.score}/{comparatif.precedent.total} ·{' '}
+                  {comparatif.precedent.pourcentage} %
+                </Text>
+              </View>
+
+              <View style={styles.comparatifLigne}>
+                <Text style={styles.comparatifLabel}>Passé le</Text>
+                <Text style={styles.comparatifValeur}>
+                  {dateLisible(comparatif.precedent.date)}
+                </Text>
+              </View>
+
+              <View style={styles.comparatifLigne}>
+                <Text style={styles.comparatifLabel}>Verdict</Text>
+                <Text
+                  style={[
+                    styles.comparatifValeur,
+                    comparatif.precedent.reussi ? styles.texteReussi : styles.texteEchoue,
+                  ]}
+                >
+                  {comparatif.precedent.reussi ? 'Réussi' : 'Non atteint'}
+                </Text>
+              </View>
+
+              {/* L'écart est ce que la comparaison a de plus parlant : deux scores côte à côte
+                  demandent un calcul, la différence se lit. En points de pourcentage, la seule
+                  unité comparable quand le nombre de questions posées change d'un examen à
+                  l'autre. */}
+              <View style={styles.comparatifLigne}>
+                <Text style={styles.comparatifLabel}>Écart avec aujourd'hui</Text>
+                <Text
+                  style={[
+                    styles.comparatifValeur,
+                    ecart > 0 ? styles.texteReussi : ecart < 0 ? styles.texteEchoue : null,
+                  ]}
+                >
+                  {ecart > 0 ? `+${ecart}` : ecart} point{Math.abs(ecart) > 1 ? 's' : ''}
+                </Text>
+              </View>
+
+              {comparatif.nbPrecedents > 1 && (
+                <View style={styles.comparatifLigne}>
+                  <Text style={styles.comparatifLabel}>
+                    Meilleur sur vos {comparatif.nbPrecedents} derniers
+                  </Text>
+                  <Text style={styles.comparatifValeur}>{comparatif.meilleurPrecedent} %</Text>
+                </View>
+              )}
+
+              {record && <Text style={styles.comparatifRecord}>Nouveau meilleur score</Text>}
+            </>
+          )}
+        </View>
       </View>
 
       {/* Repliée par défaut : ce sont les questions déjà maîtrisées, celles dont on a le moins
@@ -326,8 +399,13 @@ const styles = StyleSheet.create({
   texteEchoue: { color: couleurs.rouge },
   pourcentage: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 4 },
   verdict: { fontSize: 15, fontFamily: polices.texteGras, marginTop: 10, textAlign: 'center' },
-  comparatif: { fontSize: 11.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', lineHeight: 17, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: couleurs.ligne, alignSelf: 'stretch' },
-  comparatifRecord: { fontSize: 12, fontFamily: polices.texteSemiGras, color: couleurs.or, textAlign: 'center', marginTop: 5 },
+  comparatif: { alignSelf: 'stretch', marginTop: 16, paddingTop: 14, borderTopWidth: 1, borderTopColor: couleurs.ligne },
+  comparatifVide: { fontSize: 11.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', lineHeight: 17 },
+  comparatifTitre: { fontSize: 10.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.ardoise, fontFamily: polices.texteSemiGras, marginBottom: 9 },
+  comparatifLigne: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 5 },
+  comparatifLabel: { flexShrink: 1, fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise },
+  comparatifValeur: { fontSize: 12.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
+  comparatifRecord: { fontSize: 12, fontFamily: polices.texteSemiGras, color: couleurs.or, textAlign: 'center', marginTop: 8 },
   aucuneErreur: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', marginBottom: 20 },
   // Une ligne de texte gris se lisait comme une légende, pas comme une commande : rien
   // n'indiquait qu'on pouvait appuyer dessus. Traitée en rangée à part entière — fond, cadre,

@@ -47,13 +47,22 @@ export default function ResultatRoute() {
   const [comparatif] = useState<ComparatifExamens>(() => {
     // Historique le plus récent en tête (`enregistrerResultatExamen` empile par l'avant).
     const precedents = etatQuizz(quizz ?? 'csp').derniersResultats;
-    const pourcentages = precedents.map((r) =>
-      r.total === 0 ? 0 : Math.round((r.score / r.total) * 100)
-    );
+    const pourcentage = (r: { score: number; total: number }) =>
+      r.total === 0 ? 0 : Math.round((r.score / r.total) * 100);
+    const dernier = precedents[0];
     return {
       nbPrecedents: precedents.length,
-      pourcentagePrecedent: pourcentages[0] ?? null,
-      meilleurPrecedent: pourcentages.length > 0 ? Math.max(...pourcentages) : null,
+      precedent: dernier
+        ? {
+            score: dernier.score,
+            total: dernier.total,
+            pourcentage: pourcentage(dernier),
+            date: dernier.date,
+            reussi: dernier.reussi,
+          }
+        : null,
+      meilleurPrecedent:
+        precedents.length > 0 ? Math.max(...precedents.map(pourcentage)) : null,
     };
   });
 

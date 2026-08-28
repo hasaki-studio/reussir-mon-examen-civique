@@ -77,17 +77,20 @@ export default function SelectionQuizz({
       <Text style={styles.titre}>Mon examen civique</Text>
       <Text style={styles.sousTitre}>Choisissez le test que vous souhaitez réussir</Text>
 
-      {/* Le nom figurait deux fois, en capsule puis en toutes lettres. La couleur passe donc
-          au liseré de gauche — le même procédé que la carte d'une question — et le nom ne
-          s'écrit plus qu'une fois. */}
+      {/* Capsule colorée reprise du badge de thème affiché pendant une révision : même forme,
+          mêmes capitales espacées, même façon de porter la couleur. Le nom du quizz y tient
+          lieu de titre — l'écrire une seconde fois en dessous, comme auparavant, ne faisait
+          que doubler la même information. */}
       {lignes.map((ligne) => (
         <TouchableOpacity
           key={ligne.cle}
-          style={[styles.carte, { borderLeftColor: ligne.couleur }]}
+          style={styles.carte}
           onPress={() => onChoisirQuizz(ligne.cle)}
         >
           <View style={styles.carteTexteZone}>
-            <Text style={styles.carteNom}>{ligne.nom}</Text>
+            <View style={[styles.badge, { backgroundColor: ligne.couleur }]}>
+              <Text style={styles.badgeTexte}>{ligne.nom}</Text>
+            </View>
             <Text style={styles.carteSousTitre}>{ligne.sousTitre}</Text>
           </View>
           <Text style={[styles.fleche, { color: ligne.couleur }]}>→</Text>
@@ -117,10 +120,13 @@ const styles = StyleSheet.create({
   accroche: { fontSize: 34, lineHeight: 40, fontFamily: polices.titreGras, color: couleurs.or },
   titre: { fontSize: 25, lineHeight: 31, fontFamily: polices.titreGras, color: couleurs.bleuNuit },
   sousTitre: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 6, marginBottom: 18 },
-  carte: { borderWidth: 1, borderColor: couleurs.ligne, borderLeftWidth: 5, borderRadius: 14, padding: 18, marginBottom: 14, backgroundColor: couleurs.papier, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  carte: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 14, padding: 18, marginBottom: 14, backgroundColor: couleurs.papier, flexDirection: 'row', alignItems: 'center', gap: 12 },
   carteTexteZone: { flex: 1 },
-  carteNom: { fontSize: 17, fontFamily: polices.titre, color: couleurs.bleuNuit },
-  carteSousTitre: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 4 },
+  // Un cran au-dessus du badge de thème (11 px) : ici la capsule porte le titre de la carte,
+  // là-bas elle n'annonçait que le thème d'une question déjà à l'écran.
+  badge: { alignSelf: 'flex-start', maxWidth: '100%', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20 },
+  badgeTexte: { fontSize: 12.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.papier, fontFamily: polices.texteSemiGras },
+  carteSousTitre: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 9 },
   fleche: { fontSize: 17, fontFamily: polices.texte },
   horsLigne: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   pointVert: { width: 6, height: 6, borderRadius: 3, backgroundColor: couleurs.ok, marginRight: 5 },
