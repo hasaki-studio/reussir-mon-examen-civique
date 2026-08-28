@@ -76,10 +76,10 @@ export default function AccueilQuizz({
         { paddingBottom: styles.contenu.paddingBottom + insets.bottom },
       ]}
     >
-      {/* Repère de marque, disparu de la vue quotidienne depuis que l'application ne
-          traverse plus systématiquement le menu de sélection (celui qui le portait) à chaque
-          lancement. Drapeau à la taille exacte de celui du menu, et centré comme lui. */}
-      <View style={styles.marque}>
+      {/* Bloc de marque repris tel quel du menu de sélection : drapeau centré, puis le verbe
+          en grand dans la teinte chaude et le nom du produit dessous en bleu nuit. Le logo,
+          c'est cet ensemble — le drapeau seul n'en est qu'une moitié. */}
+      <View style={styles.illustration}>
         <View style={styles.drapeau}>
           <View style={[styles.bandeDrapeau, { backgroundColor: couleurs.bleuNuit }]} />
           <View
@@ -90,8 +90,9 @@ export default function AccueilQuizz({
           />
           <View style={[styles.bandeDrapeau, { backgroundColor: couleurs.rouge }]} />
         </View>
-        <Text style={styles.marqueTexte}>Réussir mon examen civique</Text>
       </View>
+      <Text style={styles.marqueAccroche}>Réussir</Text>
+      <Text style={styles.marqueNom}>Mon examen civique</Text>
 
       <TouchableOpacity onPress={onRetour} hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}>
         <Text style={styles.retour}>← Revenir au menu de sélection des examens</Text>
@@ -197,10 +198,12 @@ export default function AccueilQuizz({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: couleurs.papier },
   contenu: { padding: 24, paddingTop: 60, paddingBottom: 40 },
-  marque: { alignItems: 'center', marginBottom: 20 },
+  // Valeurs identiques à celles du menu de sélection : c'est le même bloc, pas une variante.
+  illustration: { alignItems: 'center', marginBottom: 18 },
   drapeau: { flexDirection: 'row', width: 66, height: 56 },
   bandeDrapeau: { flex: 1, height: '100%' },
-  marqueTexte: { fontSize: 11, fontFamily: polices.texteSemiGras, color: couleurs.ardoise, letterSpacing: 0.3, textTransform: 'uppercase', marginTop: 10 },
+  marqueAccroche: { fontSize: 34, lineHeight: 40, fontFamily: polices.titreGras, color: couleurs.or },
+  marqueNom: { fontSize: 25, lineHeight: 31, fontFamily: polices.titreGras, color: couleurs.bleuNuit, marginBottom: 18 },
   retour: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, marginBottom: 14 },
   pastille: { width: 30, height: 4, borderRadius: 2, marginBottom: 10 },
   titre: { fontSize: 23, fontFamily: polices.titre, color: couleurs.bleuNuit, marginBottom: 18 },
