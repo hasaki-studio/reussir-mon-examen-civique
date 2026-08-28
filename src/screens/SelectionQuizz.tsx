@@ -10,15 +10,10 @@ export type LigneQuizz = {
   nom: string;
   sousTitre: string;
   couleur: string;
-  palier: number;
-  palierMax: number;
-  debloquees: number;
-  total: number;
 };
 
 interface Props {
   lignes: LigneQuizz[];
-  premium: boolean;
   // Vide = message d'origine sur la disponibilité hors connexion.
   messageAccueil: string;
   onChoisirQuizz: (quizz: Quizz) => void;
@@ -37,10 +32,15 @@ interface Props {
  * L'écran est donc redevenu ce qu'il annonce — un sélecteur. L'offre Premium et les liens de
  * bas de page, qui n'auraient plus été vus par les habitués, vivent désormais sur l'écran
  * d'accueil de chaque quizz.
+ *
+ * Les cartes ne portent ni barre de progression ni niveau atteint : à l'instant du choix, ces
+ * chiffres ne départagent rien — on vient répondre « quel titre me concerne ? », pas comparer
+ * son avancement dans trois parcours dont deux ne s'appliquent pas. Ils restent affichés, en
+ * détail, sur l'écran d'accueil du quizz choisi, là où ils ont un sens. Chaque carte garde en
+ * revanche sa couleur, seul repère qui suit le quizz d'un écran à l'autre.
  */
 export default function SelectionQuizz({
   lignes,
-  premium,
   messageAccueil,
   onChoisirQuizz,
   onReinitialiser,
@@ -77,34 +77,22 @@ export default function SelectionQuizz({
       <Text style={styles.titre}>Mon examen civique</Text>
       <Text style={styles.sousTitre}>Choisissez le test que vous souhaitez réussir</Text>
 
-      {lignes.map((ligne) => {
-        const pourcentage = ligne.total ? (ligne.debloquees / ligne.total) * 100 : 0;
-        return (
-          <TouchableOpacity
-            key={ligne.cle}
-            style={styles.carte}
-            onPress={() => onChoisirQuizz(ligne.cle)}
-          >
-            {/* Badge coloré repris du prototype : le nom du quizz en capsule, dans la couleur
-                du quizz, avant le titre en toutes lettres. */}
-            <View style={[styles.badge, { backgroundColor: ligne.couleur }]}>
-              <Text style={styles.badgeTexte}>{ligne.nom}</Text>
-            </View>
+      {/* Le nom figurait deux fois, en capsule puis en toutes lettres. La couleur passe donc
+          au liseré de gauche — le même procédé que la carte d'une question — et le nom ne
+          s'écrit plus qu'une fois. */}
+      {lignes.map((ligne) => (
+        <TouchableOpacity
+          key={ligne.cle}
+          style={[styles.carte, { borderLeftColor: ligne.couleur }]}
+          onPress={() => onChoisirQuizz(ligne.cle)}
+        >
+          <View style={styles.carteTexteZone}>
             <Text style={styles.carteNom}>{ligne.nom}</Text>
             <Text style={styles.carteSousTitre}>{ligne.sousTitre}</Text>
-            <View style={styles.barre}>
-              <View
-                style={[styles.barreFill, { width: `${pourcentage}%`, backgroundColor: ligne.couleur }]}
-              />
-            </View>
-            <Text style={styles.carteMeta}>
-              {premium
-                ? `Premium actif — ${ligne.total} question${ligne.total > 1 ? 's' : ''}`
-                : `Niveau ${ligne.palier}/${ligne.palierMax} · ${ligne.debloquees}/${ligne.total} question${ligne.total > 1 ? 's' : ''} débloquée${ligne.debloquees > 1 ? 's' : ''}`}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+          </View>
+          <Text style={[styles.fleche, { color: ligne.couleur }]}>→</Text>
+        </TouchableOpacity>
+      ))}
 
       <View style={styles.horsLigne}>
         <View style={styles.pointVert} />
@@ -129,14 +117,11 @@ const styles = StyleSheet.create({
   accroche: { fontSize: 34, lineHeight: 40, fontFamily: polices.titreGras, color: couleurs.or },
   titre: { fontSize: 25, lineHeight: 31, fontFamily: polices.titreGras, color: couleurs.bleuNuit },
   sousTitre: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 6, marginBottom: 18 },
-  carte: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 14, padding: 18, marginBottom: 14, backgroundColor: couleurs.papier },
-  badge: { alignSelf: 'flex-start', paddingVertical: 4, paddingHorizontal: 9, borderRadius: 20, marginBottom: 10 },
-  badgeTexte: { fontSize: 10.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.papier, fontFamily: polices.texteSemiGras },
+  carte: { borderWidth: 1, borderColor: couleurs.ligne, borderLeftWidth: 5, borderRadius: 14, padding: 18, marginBottom: 14, backgroundColor: couleurs.papier, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  carteTexteZone: { flex: 1 },
   carteNom: { fontSize: 17, fontFamily: polices.titre, color: couleurs.bleuNuit },
   carteSousTitre: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 4 },
-  barre: { height: 5, backgroundColor: couleurs.ligne, borderRadius: 4, marginTop: 12, overflow: 'hidden' },
-  barreFill: { height: '100%', borderRadius: 4 },
-  carteMeta: { fontSize: 12, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 7 },
+  fleche: { fontSize: 17, fontFamily: polices.texte },
   horsLigne: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
   pointVert: { width: 6, height: 6, borderRadius: 3, backgroundColor: couleurs.ok, marginRight: 5 },
   horsLigneTexte: { fontSize: 11, color: couleurs.ok, fontFamily: polices.texteSemiGras },

@@ -243,12 +243,11 @@ export default function ResultatExamen({
         </SectionRepliable>
       )}
 
-      {/* Le bouton porte l'invitation plutôt qu'un paragraphe au-dessus : « Entraînez-vous sur
-          chaque thème » dit à la fois ce qu'on y fait et pourquoi, juste après la liste des
-          thèmes fautifs. Aucun texte à faire défiler entre le constat et l'action. */}
+      {/* Le bouton porte l'invitation plutôt qu'un paragraphe au-dessus, juste après la liste
+          des thèmes fautifs : rien à faire défiler entre le constat et l'action. */}
       <TouchableOpacity style={[styles.boutonAction, styles.premierBouton]} onPress={onReviserThemes}>
         <Text style={styles.boutonActionTexte}>
-          <Text style={styles.emoji}>📚</Text> Entraînez-vous sur chaque thème
+          <Text style={styles.emoji}>📚</Text> Révisez un thème
         </Text>
       </TouchableOpacity>
 

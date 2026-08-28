@@ -1,11 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Redirect, useRouter } from 'expo-router';
 import { useEtat } from '../src/state/EtatContext';
-import { useQuestionsContext } from '../src/state/QuestionsContext';
 import { useRemoteConfig } from '../src/state/RemoteConfigContext';
 import { useConsentement } from '../src/state/ConsentementContext';
 import { QUIZZ, QUIZZ_ORDRE, type Quizz } from '../src/config/quizz';
-import { questionsDebloquees, questionsDuQuizz } from '../src/utils/filtresQuestions';
 import { messageDateCle } from '../src/config/datesCles';
 import { definirQuizzAnalytics } from '../src/services/analytics';
 import SelectionQuizz, { LigneQuizz } from '../src/screens/SelectionQuizz';
@@ -24,10 +22,19 @@ import SelectionQuizz, { LigneQuizz } from '../src/screens/SelectionQuizz';
  */
 let redirectionInitialeFaite = false;
 
+// Constante, et non plus recalculée : depuis que les cartes ne portent ni progression ni
+// niveau, elles ne dépendent que de la configuration des quizz. Rien à mémoïser, rien à
+// attendre du corpus.
+const LIGNES: LigneQuizz[] = QUIZZ_ORDRE.map((cle) => ({
+  cle,
+  nom: QUIZZ[cle].nom,
+  sousTitre: QUIZZ[cle].sousTitre,
+  couleur: QUIZZ[cle].couleur,
+}));
+
 export default function SelectionRoute() {
   const router = useRouter();
-  const { etat, etatQuizz, reinitialiser } = useEtat();
-  const { questions } = useQuestionsContext();
+  const { etat, reinitialiser } = useEtat();
   const { messageAccueil } = useRemoteConfig();
   const { reinitialiserConsentement } = useConsentement();
 
@@ -46,26 +53,6 @@ export default function SelectionRoute() {
   useEffect(() => {
     definirQuizzAnalytics(null);
   }, []);
-
-  const lignes = useMemo<LigneQuizz[]>(
-    () =>
-      QUIZZ_ORDRE.map((cle) => {
-        const duQuizz = questionsDuQuizz(questions, cle);
-        const { palier } = etatQuizz(cle);
-        const palierMax = duQuizz.length === 0 ? 1 : Math.max(...duQuizz.map((q) => q.palier));
-        return {
-          cle,
-          nom: QUIZZ[cle].nom,
-          sousTitre: QUIZZ[cle].sousTitre,
-          couleur: QUIZZ[cle].couleur,
-          palier,
-          palierMax,
-          debloquees: questionsDebloquees(duQuizz, palier, etat.premium).length,
-          total: duQuizz.length,
-        };
-      }),
-    [questions, etatQuizz, etat.premium]
-  );
 
   // Bouton "Réinitialiser (test)" en dev : remet à zéro progression + consentement
   // (réaffiche l'écran de consentement), sans toucher au jeton App Check.
@@ -88,8 +75,7 @@ export default function SelectionRoute() {
 
   return (
     <SelectionQuizz
-      lignes={lignes}
-      premium={etat.premium}
+      lignes={LIGNES}
       messageAccueil={messageBandeau}
       onChoisirQuizz={(quizz: Quizz) => router.push({ pathname: '/[quizz]', params: { quizz } })}
       onReinitialiser={reinitialiserTout}
