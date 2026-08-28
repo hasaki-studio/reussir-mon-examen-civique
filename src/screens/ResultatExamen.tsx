@@ -115,7 +115,9 @@ export default function ResultatExamen({
         </View>
 
         <TouchableOpacity style={styles.boutonPrincipal} onPress={onDevoiler}>
-          <Text style={styles.boutonPrincipalTexte}>Voir mon résultat</Text>
+          <Text style={styles.boutonPrincipalTexte}>
+            <Text style={styles.emoji}>🎬</Text> Voir mon résultat
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.boutonSecondaire} onPress={onRetour}>
           <Text style={styles.boutonSecondaireTexte}>Retour au menu de révision</Text>
@@ -170,6 +172,36 @@ export default function ResultatExamen({
         </SectionRepliable>
       )}
 
+      {/* La répartition des erreurs par thème, affichée dans tous les cas et non plus seulement
+          derrière le verrou. Elle ne dévoile aucune correction — ni bonne réponse, ni
+          explication — mais elle dit où le terrain est faible, ce qui est précisément ce qui
+          rend la révision par thème évidente. La cacher à ceux qui ont déjà vu leurs erreurs
+          revenait à leur retirer la seule vue d'ensemble de l'écran. */}
+      {ratees.length > 0 && (
+        <View style={styles.recap}>
+          <Text style={styles.recapTitre}>Vos erreurs par thème</Text>
+          {repartitionTheme.map(([theme, nb]) => (
+            <View key={theme} style={styles.repartitionLigne}>
+              <View style={[styles.repartitionPuce, { backgroundColor: couleurTheme(theme) }]} />
+              <Text style={styles.repartitionTheme} numberOfLines={1}>
+                {theme}
+              </Text>
+              <Text style={styles.repartitionNb}>{nb}</Text>
+            </View>
+          ))}
+          {nbSituations > 0 && (
+            <Text style={styles.repartitionSituations}>
+              dont {nbSituations} mise{nbSituations > 1 ? 's' : ''} en situation
+            </Text>
+          )}
+          <Text style={styles.recapIncitation}>
+            {masque === 'revue'
+              ? 'La correction de chacune vous attend juste en dessous. Vous pouvez aussi reprendre ces thèmes un par un en révision détaillée.'
+              : "Reprenez ces thèmes un par un en révision détaillée : c'est là que les erreurs deviennent des acquis."}
+          </Text>
+        </View>
+      )}
+
       {/* La revue des erreurs est le véritable contenu de cet écran : le score seul n'apprend
           rien. Chaque question ratée est reprise avec sa bonne réponse et son explication.
           C'est donc elle, et non le score, qui se monnaie : la note appartient à l'utilisateur
@@ -184,25 +216,10 @@ export default function ResultatExamen({
             publicité pour voir, pour chacune, la bonne réponse et son explication.
           </Text>
 
-          <View style={styles.repartition}>
-            {repartitionTheme.map(([theme, nb]) => (
-              <View key={theme} style={styles.repartitionLigne}>
-                <View style={[styles.repartitionPuce, { backgroundColor: couleurTheme(theme) }]} />
-                <Text style={styles.repartitionTheme} numberOfLines={1}>
-                  {theme}
-                </Text>
-                <Text style={styles.repartitionNb}>{nb}</Text>
-              </View>
-            ))}
-            {nbSituations > 0 && (
-              <Text style={styles.repartitionSituations}>
-                dont {nbSituations} mise{nbSituations > 1 ? 's' : ''} en situation
-              </Text>
-            )}
-          </View>
-
           <TouchableOpacity style={styles.boutonVerrou} onPress={onDevoiler}>
-            <Text style={styles.boutonPrincipalTexte}>Revoir mes erreurs</Text>
+            <Text style={styles.boutonPrincipalTexte}>
+              <Text style={styles.emoji}>🎬</Text> Revoir mes erreurs
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (
@@ -232,21 +249,14 @@ export default function ResultatExamen({
         </SectionRepliable>
       )}
 
-      {/* Repasser un examen tout de suite ne corrige rien : c'est en reprenant les thèmes
-          qu'on transforme une erreur en acquis. Ce bloc propose donc la suite utile avant les
-          actions habituelles, sans les remplacer. */}
-      <View style={styles.suite}>
-        <Text style={styles.suiteTexte}>
-          {ratees.length === 0
-            ? 'Aucune erreur cette fois. Reprenez un thème pour consolider, ou enchaînez sur un nouvel examen.'
-            : "Repasser un examen ne corrige pas une erreur. Reprenez d'abord les thèmes où vous avez trébuché : c'est le chemin le plus court vers la prochaine réussite."}
+      {/* Sans message : l'incitation à réviser par thème est portée par le récap des erreurs,
+          plus haut, là où l'utilisateur voit précisément quels thèmes sont en cause. La
+          répéter ici n'ajouterait rien qu'une ligne à faire défiler. */}
+      <TouchableOpacity style={styles.boutonSuite} onPress={onReviserThemes}>
+        <Text style={styles.boutonSuiteTexte}>
+          <Text style={styles.emoji}>📚</Text> Réviser en détail
         </Text>
-        <TouchableOpacity style={styles.boutonSuite} onPress={onReviserThemes}>
-          <Text style={styles.boutonSuiteTexte}>
-            <Text style={styles.emoji}>📚</Text> Réviser en détail
-          </Text>
-        </TouchableOpacity>
-      </View>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.boutonPrincipal} onPress={onRecommencer}>
         <Text style={styles.boutonPrincipalTexte}>
@@ -269,7 +279,9 @@ const styles = StyleSheet.create({
   verrouEmoji: { fontSize: 32, marginBottom: 14 },
   verrouTexte: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', lineHeight: 20 },
   boutonVerrou: { backgroundColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 22, alignItems: 'center', marginTop: 18 },
-  repartition: { alignSelf: 'stretch', marginTop: 18, paddingTop: 16, borderTopWidth: 1, borderTopColor: couleurs.ligne },
+  recap: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, backgroundColor: couleurs.blancCasse, padding: 16, marginBottom: 20 },
+  recapTitre: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, marginBottom: 12 },
+  recapIncitation: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 18, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: couleurs.ligne },
   repartitionLigne: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   repartitionPuce: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
   repartitionTheme: { flex: 1, fontSize: 12.5, fontFamily: polices.texte, color: couleurs.bleuNuit },
@@ -306,9 +318,7 @@ const styles = StyleSheet.create({
   boutonPrincipalTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, textAlign: 'center' },
   boutonSecondaire: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, alignItems: 'center', marginTop: 10 },
   boutonSecondaireTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
-  suite: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, backgroundColor: couleurs.blancCasse, padding: 16, marginTop: 22 },
-  suiteTexte: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 19 },
-  boutonSuite: { backgroundColor: couleurs.papier, borderWidth: 1, borderColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 13, paddingHorizontal: 14, alignItems: 'center', marginTop: 13 },
+  boutonSuite: { backgroundColor: couleurs.papier, borderWidth: 1.5, borderColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, alignItems: 'center', marginTop: 22 },
   boutonSuiteTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
   // Emoji isolé dans sa propre police : accolé à une police semi-grasse personnalisée, il se
   // rend en gris délavé sur iOS. Même traitement que sur l'écran d'accueil d'un quizz.
