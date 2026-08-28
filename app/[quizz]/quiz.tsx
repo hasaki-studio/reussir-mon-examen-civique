@@ -3,8 +3,15 @@ import { Redirect, useRouter } from 'expo-router';
 import { useEtat } from '../../src/state/EtatContext';
 import { useQuiz, type ModeSession } from '../../src/state/QuizContext';
 import { useQuizzRoute } from '../../src/hooks/useQuizzRoute';
-import { logReponseChoisie, logSelectContent } from '../../src/services/analytics';
+import { useExamenBlanc } from '../../src/hooks/useExamenBlanc';
+import {
+  logPubExamenVisionnee,
+  logReponseChoisie,
+  logSelectContent,
+} from '../../src/services/analytics';
 import EcranQuestion from '../../src/screens/Question';
+import PubRecompensee from '../../src/components/PubRecompensee';
+import { UNITE_PUB_EXAMEN } from '../../src/services/ads';
 
 function libelleMode(mode: ModeSession, valeur: string | number | undefined): string {
   switch (mode) {
@@ -31,6 +38,8 @@ export default function QuizRoute() {
     terminerSession,
     reponseCourante,
   } = useQuiz();
+  // `replace` : la révision qu'on vient de terminer n'a pas à rester sous l'examen.
+  const examen = useExamenBlanc(quizz ?? 'csp', 'replace');
 
   const question = sessionQuiz?.liste[sessionQuiz.index];
   const enExamen = sessionQuiz?.mode === 'examen';
@@ -76,23 +85,45 @@ export default function QuizRoute() {
   };
 
   return (
-    <EcranQuestion
-      question={question}
-      modeLabel={libelleMode(sessionQuiz.mode, sessionQuiz.valeur)}
-      numero={sessionQuiz.index + 1}
-      total={sessionQuiz.liste.length}
-      correctionImmediate={!enExamen}
-      reponse={reponseCourante}
-      masquerPublicite={etat.premium}
-      estDerniere={sessionQuiz.index === sessionQuiz.liste.length - 1}
-      peutPrecedent={!enExamen && sessionQuiz.index > 0}
-      onRepondre={onRepondre}
-      onSuivant={questionSuivante}
-      onPrecedent={questionPrecedente}
-      onQuitter={() => {
-        terminerSession();
-        router.back();
-      }}
-    />
+    <>
+      <EcranQuestion
+        question={question}
+        modeLabel={libelleMode(sessionQuiz.mode, sessionQuiz.valeur)}
+        numero={sessionQuiz.index + 1}
+        total={sessionQuiz.liste.length}
+        correctionImmediate={!enExamen}
+        reponse={reponseCourante}
+        masquerPublicite={etat.premium}
+        estDerniere={sessionQuiz.index === sessionQuiz.liste.length - 1}
+        peutPrecedent={!enExamen && sessionQuiz.index > 0}
+        onRepondre={onRepondre}
+        onSuivant={questionSuivante}
+        onPrecedent={questionPrecedente}
+        onQuitter={() => {
+          terminerSession();
+          router.back();
+        }}
+        // `replace` : la révision terminée n'a pas à rester dans la pile sous l'écran des
+        // thèmes. Celle-ci redevient « accueil du quizz → thèmes », et le retour depuis les
+        // thèmes ramène à l'accueil du quizz.
+        onReviserTheme={() => {
+          terminerSession();
+          router.replace({ pathname: '/[quizz]/themes', params: { quizz } });
+        }}
+        // Sans terminerSession() : `lancerExamen` ouvre une session qui remplace celle-ci.
+        // Fermer d'abord ferait passer l'écran par un rendu sans session, donc par l'effet de
+        // sortie qui renvoie en arrière.
+        onExamenBlanc={examen.lancerExamen}
+      />
+      <PubRecompensee
+        unite={UNITE_PUB_EXAMEN}
+        visible={examen.pubEnAttente}
+        titre="Passer un examen blanc de plus"
+        description="Vous avez déjà utilisé votre examen blanc du jour. Regardez une publicité pour en repasser un aujourd'hui."
+        onVisionnee={logPubExamenVisionnee}
+        onTermine={examen.pubTerminee}
+        onAnnuler={examen.pubAnnulee}
+      />
+    </>
   );
 }

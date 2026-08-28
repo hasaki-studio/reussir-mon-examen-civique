@@ -36,6 +36,12 @@ interface Props {
   onSuivant: () => void;
   onPrecedent: () => void;
   onQuitter: () => void;
+  /**
+   * Bascule vers un autre mode de travail, proposée une fois la dernière question d'une
+   * révision répondue. En examen, rien n'est proposé : on ne quitte pas une épreuve en cours.
+   */
+  onReviserTheme: () => void;
+  onExamenBlanc: () => void;
 }
 
 export default function EcranQuestion({
@@ -52,6 +58,8 @@ export default function EcranQuestion({
   onSuivant,
   onPrecedent,
   onQuitter,
+  onReviserTheme,
+  onExamenBlanc,
 }: Props) {
   const couleur = couleurTheme(question.theme);
   const repondu = reponse !== undefined;
@@ -180,6 +188,26 @@ export default function EcranQuestion({
             </Text>
           </TouchableOpacity>
         </View>
+
+        {/* Fin d'une révision : les quinze questions sont derrière, et l'écran ne proposait
+            que d'en sortir. Les deux autres façons de travailler sont offertes ici, au moment
+            où la question « et maintenant ? » se pose vraiment. Réservé à la révision, et à
+            la dernière question une fois répondue : en examen on ne part pas en cours
+            d'épreuve, et avant d'avoir répondu ces boutons ne seraient qu'une échappatoire. */}
+        {estDerniere && correctionImmediate && repondu && (
+          <View style={styles.suite}>
+            <TouchableOpacity style={styles.boutonSuite} onPress={onReviserTheme}>
+              <Text style={styles.boutonSuiteTexte}>
+                <Text style={styles.emoji}>📚</Text> Révisez un thème
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.boutonSuite} onPress={onExamenBlanc}>
+              <Text style={styles.boutonSuiteTexte}>
+                <Text style={styles.emoji}>📝</Text> Passer un examen blanc
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
       <BandeauPublicitaire masque={masquerPublicite} />
     </View>
@@ -219,4 +247,10 @@ const styles = StyleSheet.create({
   boutonSuivantDesactive: { backgroundColor: couleurs.ligne },
   boutonSuivantTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, letterSpacing: 0.3, textAlign: 'center' },
   boutonSuivantTexteDesactive: { color: couleurs.ardoise },
+  suite: { marginTop: 10 },
+  boutonSuite: { backgroundColor: couleurs.papier, borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, alignItems: 'center', marginTop: 10 },
+  boutonSuiteTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
+  // Emoji isolé dans sa propre police : accolé à une police semi-grasse personnalisée, il se
+  // rend en gris délavé sur iOS. Même traitement que sur les autres écrans.
+  emoji: { fontFamily: polices.texte },
 });
