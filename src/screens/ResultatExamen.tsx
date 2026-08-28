@@ -221,8 +221,13 @@ export default function ResultatExamen({
                 <Text style={styles.comparatifValeur}>{moyenne} %</Text>
               </View>
 
+              {/* Le nombre d'examens couverts est précisé ici et pas sur la moyenne : sur un
+                  maximum, savoir combien de tentatives il départage change ce qu'il vaut —
+                  meilleur sur deux essais et meilleur sur dix ne disent pas la même chose. */}
               <View style={styles.comparatifLigne}>
-                <Text style={styles.comparatifLabel}>Votre meilleur score</Text>
+                <Text style={styles.comparatifLabel}>
+                  Votre meilleur score (sur vos {comparatif.nbPrecedents + 1} derniers)
+                </Text>
                 <Text style={styles.comparatifValeur}>{meilleur} %</Text>
               </View>
 
@@ -230,10 +235,14 @@ export default function ResultatExamen({
             </>
           )}
 
-          {/* Sur sa propre ligne, pleine largeur : le conseil est une phrase, pas une valeur à
-              cadrer à droite face à son intitulé. Tiré du score du jour, le seul sur lequel il
-              y ait quelque chose à faire. */}
-          <Text style={styles.conseil}>{conseilSelonScore(pourcentage)}</Text>
+          {/* Intitulé gris comme les autres lignes, valeur dans sa propre couleur. Le conseil
+              est tiré du score du jour, le seul sur lequel il y ait quelque chose à faire. */}
+          <View style={[styles.comparatifLigne, styles.ligneVerdict]}>
+            <Text style={[styles.comparatifLabel, styles.verdictLabel]}>Verdict</Text>
+            <Text style={[styles.comparatifValeur, styles.verdictValeur]}>
+              {conseilSelonScore(pourcentage)}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -388,7 +397,11 @@ const styles = StyleSheet.create({
   comparatifLabel: { flexShrink: 1, fontSize: 12.5, fontFamily: polices.texte, color: couleurs.ardoise },
   comparatifValeur: { fontSize: 12.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
   comparatifRecord: { fontSize: 12, fontFamily: polices.texteSemiGras, color: couleurs.or, textAlign: 'center', marginTop: 8 },
-  conseil: { fontSize: 12.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center', lineHeight: 18, marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: couleurs.ligne },
+  ligneVerdict: { alignItems: 'flex-start', marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: couleurs.ligne, marginBottom: 0 },
+  // Contrairement aux autres lignes, la valeur est une phrase : c'est elle qui doit prendre la
+  // place restante et revenir à la ligne, pas l'intitulé.
+  verdictLabel: { flexShrink: 0 },
+  verdictValeur: { flex: 1, textAlign: 'right', lineHeight: 18 },
   aucuneErreur: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', marginBottom: 20 },
   // Une ligne de texte gris se lisait comme une légende, pas comme une commande : rien
   // n'indiquait qu'on pouvait appuyer dessus. Traitée en rangée à part entière — fond, cadre,
