@@ -31,6 +31,8 @@ interface Props {
   masque: 'rien' | 'revue' | 'tout';
   onDevoiler: () => void;
   onRecommencer: () => void;
+  /** Ouvre la révision par thème ou par niveau — le même écran que « Réviser en détail ». */
+  onReviserThemes: () => void;
   onRetour: () => void;
 }
 
@@ -55,12 +57,12 @@ function SectionRepliable({
   return (
     <>
       <TouchableOpacity
-        style={styles.sectionEntete}
+        style={[styles.sectionEntete, ouvert && styles.sectionEnteteOuverte]}
         onPress={() => setOuvert((o) => !o)}
         accessibilityRole="button"
         accessibilityState={{ expanded: ouvert }}
       >
-        <Text style={styles.sousTitreListe}>{titre}</Text>
+        <Text style={styles.sectionTitre}>{titre}</Text>
         <Text style={styles.chevron}>{ouvert ? '▾' : '▸'}</Text>
       </TouchableOpacity>
       {ouvert && children}
@@ -78,6 +80,7 @@ export default function ResultatExamen({
   masque,
   onDevoiler,
   onRecommencer,
+  onReviserThemes,
   onRetour,
 }: Props) {
   const pourcentage = total === 0 ? 0 : Math.round((score / total) * 100);
@@ -229,8 +232,26 @@ export default function ResultatExamen({
         </SectionRepliable>
       )}
 
+      {/* Repasser un examen tout de suite ne corrige rien : c'est en reprenant les thèmes
+          qu'on transforme une erreur en acquis. Ce bloc propose donc la suite utile avant les
+          actions habituelles, sans les remplacer. */}
+      <View style={styles.suite}>
+        <Text style={styles.suiteTexte}>
+          {ratees.length === 0
+            ? 'Aucune erreur cette fois. Reprenez un thème pour consolider, ou enchaînez sur un nouvel examen.'
+            : "Repasser un examen ne corrige pas une erreur. Reprenez d'abord les thèmes où vous avez trébuché : c'est le chemin le plus court vers la prochaine réussite."}
+        </Text>
+        <TouchableOpacity style={styles.boutonSuite} onPress={onReviserThemes}>
+          <Text style={styles.boutonSuiteTexte}>
+            <Text style={styles.emoji}>📚</Text> Réviser en détail
+          </Text>
+        </TouchableOpacity>
+      </View>
+
       <TouchableOpacity style={styles.boutonPrincipal} onPress={onRecommencer}>
-        <Text style={styles.boutonPrincipalTexte}>Refaire un examen blanc</Text>
+        <Text style={styles.boutonPrincipalTexte}>
+          <Text style={styles.emoji}>📝</Text> Refaire un examen blanc
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.boutonSecondaire} onPress={onRetour}>
         <Text style={styles.boutonSecondaireTexte}>Retour au menu de révision</Text>
@@ -263,9 +284,13 @@ const styles = StyleSheet.create({
   pourcentage: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 4 },
   verdict: { fontSize: 15, fontFamily: polices.texteGras, marginTop: 10, textAlign: 'center' },
   aucuneErreur: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', marginBottom: 20 },
-  sectionEntete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 4, marginBottom: 8 },
-  sousTitreListe: { fontSize: 13, fontFamily: polices.texteSemiGras, color: couleurs.ardoise },
-  chevron: { fontSize: 13, color: couleurs.ardoise, fontFamily: polices.texte, paddingLeft: 12 },
+  // Une ligne de texte gris se lisait comme une légende, pas comme une commande : rien
+  // n'indiquait qu'on pouvait appuyer dessus. Traitée en rangée à part entière — fond, cadre,
+  // texte en bleu nuit — elle annonce ce qu'elle est.
+  sectionEntete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: couleurs.blancCasse, borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 13, paddingHorizontal: 15, marginBottom: 12 },
+  sectionEnteteOuverte: { marginBottom: 10 },
+  sectionTitre: { flex: 1, fontSize: 14.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
+  chevron: { fontSize: 15, color: couleurs.or, fontFamily: polices.texte, paddingLeft: 12 },
   carteRatee: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, padding: 15, marginBottom: 10 },
   rateeEntete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   rateeTheme: { flexShrink: 1, fontSize: 10.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.or, fontFamily: polices.texteSemiGras },
@@ -281,4 +306,11 @@ const styles = StyleSheet.create({
   boutonPrincipalTexte: { fontSize: 14.5, fontFamily: polices.texteGras, color: couleurs.papier, textAlign: 'center' },
   boutonSecondaire: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, alignItems: 'center', marginTop: 10 },
   boutonSecondaireTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
+  suite: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, backgroundColor: couleurs.blancCasse, padding: 16, marginTop: 22 },
+  suiteTexte: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 19 },
+  boutonSuite: { backgroundColor: couleurs.papier, borderWidth: 1, borderColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 13, paddingHorizontal: 14, alignItems: 'center', marginTop: 13 },
+  boutonSuiteTexte: { fontSize: 14, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
+  // Emoji isolé dans sa propre police : accolé à une police semi-grasse personnalisée, il se
+  // rend en gris délavé sur iOS. Même traitement que sur l'écran d'accueil d'un quizz.
+  emoji: { fontFamily: polices.texte },
 });

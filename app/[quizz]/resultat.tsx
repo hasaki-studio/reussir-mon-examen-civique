@@ -108,6 +108,14 @@ export default function ResultatRoute() {
     router.replace({ pathname: '/[quizz]', params: { quizz } });
   };
 
+  // `replace` comme le retour au quizz : l'écran de résultat n'a pas à rester sous la révision.
+  // La pile redevient donc « accueil du quizz → thèmes », et le retour depuis les thèmes ramène
+  // à l'accueil du quizz, pas à un résultat dont la session vient d'être close.
+  const reviserThemes = () => {
+    terminerSession();
+    router.replace({ pathname: '/[quizz]/themes', params: { quizz } });
+  };
+
   return (
     <>
       <ResultatExamen
@@ -120,6 +128,7 @@ export default function ResultatRoute() {
         masque={masque}
         onDevoiler={() => setPubResultatVisible(true)}
         onRecommencer={examen.lancerExamen}
+        onReviserThemes={reviserThemes}
         onRetour={retourAuQuizz}
       />
       <PubRecompensee

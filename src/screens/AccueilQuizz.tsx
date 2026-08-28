@@ -1,4 +1,4 @@
-import { View, Text, Image, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { couleurs } from '../theme/colors';
 import { polices } from '../theme/typographie';
@@ -78,15 +78,19 @@ export default function AccueilQuizz({
     >
       {/* Repère de marque, disparu de la vue quotidienne depuis que l'application ne
           traverse plus systématiquement le menu de sélection (celui qui le portait) à chaque
-          lancement. Le logo réel, celui du menu de sélection et de l'écran d'accueil du
-          téléphone, en réduction : l'écran reste d'abord celui du quizz en cours. */}
+          lancement. Réduction exacte du drapeau de ce menu — mêmes couleurs, mêmes
+          proportions (66×56 ramené à 18×15) : l'écran reste d'abord celui du quizz en cours. */}
       <View style={styles.marque}>
-        <Image
-          source={require('../../assets/logo-app.png')}
-          style={styles.logoMini}
-          resizeMode="contain"
-          accessibilityIgnoresInvertColors
-        />
+        <View style={styles.drapeauMini}>
+          <View style={[styles.bandeDrapeauMini, { backgroundColor: couleurs.bleuNuit }]} />
+          <View
+            style={[
+              styles.bandeDrapeauMini,
+              { backgroundColor: couleurs.blancCasse, borderWidth: 1, borderColor: couleurs.ligne },
+            ]}
+          />
+          <View style={[styles.bandeDrapeauMini, { backgroundColor: couleurs.rouge }]} />
+        </View>
         <Text style={styles.marqueTexte}>Réussir mon examen civique</Text>
       </View>
 
@@ -195,7 +199,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: couleurs.papier },
   contenu: { padding: 24, paddingTop: 60, paddingBottom: 40 },
   marque: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
-  logoMini: { width: 22, height: 22, borderRadius: 5, marginRight: 8 },
+  drapeauMini: { flexDirection: 'row', width: 18, height: 15, marginRight: 8 },
+  bandeDrapeauMini: { flex: 1, height: '100%' },
   marqueTexte: { fontSize: 11, fontFamily: polices.texteSemiGras, color: couleurs.ardoise, letterSpacing: 0.3, textTransform: 'uppercase' },
   retour: { fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, marginBottom: 14 },
   pastille: { width: 30, height: 4, borderRadius: 2, marginBottom: 10 },
