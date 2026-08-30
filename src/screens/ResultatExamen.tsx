@@ -43,7 +43,8 @@ export type ComparatifExamens = {
  * atteint et la configuration distante. Un 27/30 ne mérite pas le conseil d'un 27/40.
  */
 function conseilSelonScore(pourcentage: number): string {
-  if (pourcentage < (27 / 40) * 100) return "Révisez les thèmes où vous avez le plus d'erreurs";
+  if (pourcentage < (27 / 40) * 100)
+    return "Révisez les thèmes où vous avez le plus d'erreurs avant de refaire d'autres examens blancs";
   if (pourcentage < (35 / 40) * 100) return 'Continuez à passer les examens blancs';
   return 'Bravo ! Restez en forme avec le mode Express';
 }
@@ -404,7 +405,7 @@ const styles = StyleSheet.create({
   // Contrairement aux autres lignes, la valeur est une phrase : c'est elle qui doit prendre la
   // place restante et revenir à la ligne, pas l'intitulé.
   verdictLabel: { flexShrink: 0 },
-  verdictValeur: { flex: 1, textAlign: 'right', lineHeight: 18 },
+  verdictValeur: { flex: 1, textAlign: 'left', lineHeight: 18 },
   aucuneErreur: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, textAlign: 'center', marginBottom: 20 },
   // Une ligne de texte gris se lisait comme une légende, pas comme une commande : rien
   // n'indiquait qu'on pouvait appuyer dessus. Traitée en rangée à part entière — fond, cadre,
