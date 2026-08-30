@@ -105,7 +105,9 @@ function SectionRepliable({
         accessibilityState={{ expanded: ouvert }}
       >
         <Text style={styles.sectionTitre}>{titre}</Text>
-        <Text style={styles.chevron}>{ouvert ? '▾' : '▸'}</Text>
+        <View style={styles.chevronFond}>
+          <Text style={styles.chevron}>{ouvert ? '▾' : '▸'}</Text>
+        </View>
       </TouchableOpacity>
       {ouvert && children}
     </>
@@ -216,14 +218,15 @@ export default function ResultatExamen({
                 </Text>
               </View>
 
+              {/* Même portée sur les deux lignes, donc même précision : une moyenne ou un
+                  maximum sur deux tentatives et sur dix ne disent pas la même chose. */}
               <View style={styles.comparatifLigne}>
-                <Text style={styles.comparatifLabel}>Votre moyenne</Text>
+                <Text style={styles.comparatifLabel}>
+                  Votre moyenne (sur vos {comparatif.nbPrecedents + 1} derniers)
+                </Text>
                 <Text style={styles.comparatifValeur}>{moyenne} %</Text>
               </View>
 
-              {/* Le nombre d'examens couverts est précisé ici et pas sur la moyenne : sur un
-                  maximum, savoir combien de tentatives il départage change ce qu'il vaut —
-                  meilleur sur deux essais et meilleur sur dix ne disent pas la même chose. */}
               <View style={styles.comparatifLigne}>
                 <Text style={styles.comparatifLabel}>
                   Votre meilleur score (sur vos {comparatif.nbPrecedents + 1} derniers)
@@ -409,7 +412,12 @@ const styles = StyleSheet.create({
   sectionEntete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: couleurs.blancCasse, borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 10, paddingVertical: 13, paddingHorizontal: 15, marginBottom: 12 },
   sectionEnteteOuverte: { marginBottom: 10 },
   sectionTitre: { flex: 1, fontSize: 14.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
-  chevron: { fontSize: 15, color: couleurs.or, fontFamily: polices.texte, paddingLeft: 12 },
+  // Un simple caractère à côté du titre se perdait, surtout en ▸ (fermé) : trop fin dans la
+  // police du texte courant pour se voir comme une commande. Fond circulaire distinct, bleu
+  // nuit à pleine opacité (plus de contraste que l'or sur le fond clair de l'en-tête), et
+  // police semi-grasse.
+  chevronFond: { width: 26, height: 26, borderRadius: 13, backgroundColor: couleurs.bleuNuit, alignItems: 'center', justifyContent: 'center', marginLeft: 12 },
+  chevron: { fontSize: 13, color: couleurs.papier, fontFamily: polices.texteSemiGras },
   carteRatee: { borderWidth: 1, borderColor: couleurs.ligne, borderRadius: 12, padding: 15, marginBottom: 10 },
   rateeEntete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
   rateeTheme: { flexShrink: 1, fontSize: 10.5, letterSpacing: 0.5, textTransform: 'uppercase', color: couleurs.or, fontFamily: polices.texteSemiGras },
