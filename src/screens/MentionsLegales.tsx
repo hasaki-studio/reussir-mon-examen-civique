@@ -37,11 +37,13 @@ export default function MentionsLegales({
 
       <Text style={styles.sectionTitre}>Éditeur</Text>
       <Text style={styles.paragrapheSerre}>
-        <Text style={styles.gras}>Achraf AZOUZI</Text> — personne physique. « Hasaki Studio » est un nom d'usage, non une société immatriculée.
+        <Text style={styles.gras}>Hasaki Studio</Text> — Achraf AZOUZI, entreprise immatriculée au
+        répertoire SIRENE.
       </Text>
 
       <View style={styles.coordonnees}>
-        <Text style={styles.coordonneeLigne}>Domicile : 3 avenue de Choisy, Tour Bergame, BP 2122, 75013 Paris</Text>
+        <Text style={styles.coordonneeLigne}>SIREN : 130 296 460</Text>
+        <Text style={styles.coordonneeLigne}>Siège : 47 rue Crozatier, BP AZOUZI, 75012 Paris</Text>
         <Text style={styles.coordonneeLigne}>Téléphone : 06 13 66 73 89</Text>
         <Text style={styles.coordonneeLigne}>Contact : contact@hasakistudio.fr</Text>
       </View>
