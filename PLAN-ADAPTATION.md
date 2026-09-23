@@ -254,7 +254,7 @@ Le chemin critique, indépendant de tout le reste.
 
 ## Lot 4 — Légal et conformité
 
-- `src/screens/MentionsLegales.tsx` : couvrir CSP, carte de résident **et** naturalisation. Éditeur personne physique avec domicile et téléphone, données personnelles, analytics, publicité, achats et rétractation, propriété intellectuelle. Ne pas écrire « micro-entreprise » avant immatriculation.
+- `src/screens/MentionsLegales.tsx` : couvrir CSP, carte de résident **et** naturalisation. Éditeur : entrepreneur individuel (EI) au régime micro-entreprise, avec SIREN et siège — le domicile personnel n'a plus à y figurer depuis l'immatriculation. Puis données personnelles, analytics, publicité, achats et rétractation, propriété intellectuelle.
 - `src/screens/ConseilsRevision.tsx` (525 lignes, entièrement orienté entretien de naturalisation) : réécriture éditoriale. Le format QCM change la nature des conseils — réviser pour un QCM n'a rien à voir avec préparer un entretien oral.
 - Site `examencivique.hasakistudio.fr` : **en ligne** (mentions, confidentialité, contact). URL de confidentialité à saisir à l'identique dans Play Console **et** AdMob.
 

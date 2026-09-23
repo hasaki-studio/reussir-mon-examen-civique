@@ -37,8 +37,8 @@ export default function MentionsLegales({
 
       <Text style={styles.sectionTitre}>Éditeur</Text>
       <Text style={styles.paragrapheSerre}>
-        <Text style={styles.gras}>Hasaki Studio</Text> — Achraf AZOUZI, entreprise immatriculée au
-        répertoire SIRENE.
+        <Text style={styles.gras}>Hasaki Studio</Text> — Achraf AZOUZI, entrepreneur individuel
+        (EI), régime micro-entreprise.
       </Text>
 
       <View style={styles.coordonnees}>
