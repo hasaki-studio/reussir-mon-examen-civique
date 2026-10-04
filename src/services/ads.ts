@@ -70,20 +70,78 @@ export const UNITE_PUB_RESULTAT_EXAMEN = __DEV__
 export const TAILLE_BANNIERE = BannerAdSize.BANNER;
 
 /**
+ * ⚙️ Appareils sur lesquels les unités réelles doivent servir des annonces de TEST.
+ *
+ * C'est le seul mécanisme qui protège un build de RELEASE, où __DEV__ vaut false : un APK/AAB
+ * signé installé à la main ou distribué en test interne demande de vraies annonces dès que
+ * l'appareil n'y figure pas. Les impressions et clics qui en résultent sont comptabilisés sur
+ * le compte AdMob, et Google les traite comme du trafic non valide — motif de suspension de
+ * compte le plus courant, avant même le premier euro gagné. Compte AdMob partagé avec l'app
+ * Naturalisation : un ban toucherait les deux apps.
+ *
+ * Pour relever l'identifiant d'un appareil : le lancer une fois (unités de test ou réelles,
+ * peu importe — le diagnostic est émis dans les deux cas), puis chercher dans les journaux
+ * (`adb logcat | findstr /C:"setTestDeviceIds"` sous Android — /C: est indispensable, un
+ * filtre sur des mots séparés noie la ligne utile sous le bruit système) la ligne « Use
+ * RequestConfiguration.Builder().setTestDeviceIds(...) ».
+ *
+ * TODO(monétisation) : renseigner cet appareil AVANT tout build release une fois les unités
+ * réelles ci-dessus actives. L'ID relevé sur cette même app pour le téléphone d'Achraf AZOUZI
+ * (Samsung) le 03/10/2026 était 516965A4C750761A8553013A9BE24FE8 — probablement valable ici
+ * aussi (l'identifiant dépend de l'appareil, pas de l'app), mais à RE-VÉRIFIER par logcat sur
+ * un build de cette app avant de s'y fier : ne pas supposer, le coût d'une vérification est nul
+ * à côté du risque.
+ */
+const APPAREILS_DE_TEST: string[] = [];
+
+/**
+ * Détermine si l'utilisateur a réellement autorisé la publicité, au sens où l'entend cette
+ * app — et pas seulement au sens de canRequestAds.
+ *
+ * ⚠️ canRequestAds de Google NE SUFFIT PAS pour ça : il reste vrai même après un refus
+ * explicite, tant que des annonces non personnalisées peuvent légalement être servies —
+ * « Refuser » dans le formulaire UMP veut dire « pas de personnalisation », pas « aucune
+ * publicité ». S'y fier seul a fait tourner des pubs à des utilisateurs ayant explicitement
+ * refusé, constaté sur l'app Naturalisation le 03/10/2026 — même service AdMob, même
+ * dépendance, donc même bug ici tant que ce correctif n'est pas en place.
+ *
+ * Le Purpose 1 du TCF (« stocker et/ou accéder à des informations sur l'appareil ») est en
+ * revanche un bon proxy : les règles du cadre TCF lui interdisent de reposer sur un intérêt
+ * légitime, il ne peut refléter qu'un choix explicite de l'utilisateur.
+ */
+async function consentementReelAccorde(canRequestAds: boolean): Promise<boolean> {
+  if (!canRequestAds) return false;
+  try {
+    // Hors RGPD (utilisateur hors UE/UK/Suisse), aucun choix formel n'existe à vérifier :
+    // canRequestAds suffit alors, c'est le comportement par défaut attendu.
+    const gdprApplies = await AdsConsent.getGdprApplies();
+    if (!gdprApplies) return true;
+    const choix = await AdsConsent.getUserChoices();
+    return choix.storeAndAccessInformationOnDevice;
+  } catch (e) {
+    console.warn('Lecture des choix de consentement impossible', e);
+    // Par sécurité : pas de publicité si l'état réel du consentement ne peut pas être confirmé.
+    return false;
+  }
+}
+
+/**
  * Parcours de consentement publicitaire imposé par Google (UMP / IAB TCF), distinct du
  * consentement Analytics (ConsentementContext) : il couvre l'ensemble des vendeurs
  * publicitaires de la chaîne AdMob, pas seulement Firebase. Doit être exécuté avant toute
  * requête publicitaire ; peut afficher un formulaire natif si l'utilisateur est dans une
  * zone régulée (UE/UK) et n'a pas encore fait de choix.
  *
- * @returns true si l'app peut demander des publicités (consentement obtenu, ou non requis
- * hors zone régulée) ; false si refusé ou si le parcours échoue — par sécurité, on n'affiche
- * alors aucune publicité plutôt que de supposer un consentement implicite.
+ * @returns true si l'app peut demander des publicités (consentement réellement accordé, ou
+ * non requis hors zone régulée) ; false si refusé ou si le parcours échoue — par sécurité, on
+ * n'affiche alors aucune publicité plutôt que de supposer un consentement implicite.
  */
 export async function initialiserPublicites(): Promise<boolean> {
+  let autorise: boolean;
   try {
     const consentInfo = await AdsConsent.gatherConsent();
-    if (!consentInfo.canRequestAds) return false;
+    autorise = await consentementReelAccorde(consentInfo.canRequestAds);
+    if (!autorise) return false;
   } catch (e) {
     console.warn('Parcours de consentement publicitaire impossible', e);
     return false;
@@ -108,7 +166,12 @@ export async function initialiserPublicites(): Promise<boolean> {
     // rien à gagner à afficher des annonces pour adultes. « T » (teen) écarte les catégories
     // les plus crues tout en conservant l'essentiel de l'inventaire — « MA » les autoriserait,
     // « PG » serait plus strict mais réduirait davantage le remplissage.
-    await MobileAds().setRequestConfiguration({ maxAdContentRating: MaxAdContentRating.T });
+    await MobileAds().setRequestConfiguration({
+      maxAdContentRating: MaxAdContentRating.T,
+      // Appliqué à chaque lancement, y compris en release : c'est précisément là que la
+      // protection compte (voir APPAREILS_DE_TEST). Une liste vide n'a aucun effet.
+      testDeviceIdentifiers: APPAREILS_DE_TEST,
+    });
     await MobileAds().initialize();
     return true;
   } catch (e) {
@@ -124,18 +187,19 @@ export async function initialiserPublicites(): Promise<boolean> {
  * consentement Analytics.
  *
  * `showPrivacyOptionsForm` renvoie le statut de consentement à jour une fois le formulaire
- * fermé — `canRequestAds` y est déjà inclus. Le récupérer ici, plutôt que l'ignorer, est ce
- * qui permet à l'appelant de répercuter un refus sur l'affichage des publicités : sans ce
- * retour, `publicitesAutorisees` resterait figé à sa valeur du tout premier lancement, et
- * revenir sur son choix n'aurait aucun effet visible.
+ * fermé. Le récupérer ici, plutôt que l'ignorer, est ce qui permet à l'appelant de répercuter
+ * un choix sur l'affichage des publicités : sans ce retour, `publicitesAutorisees` resterait
+ * figé à sa valeur du tout premier lancement, et revenir sur son choix n'aurait aucun effet
+ * visible.
  *
- * @returns Le nouveau `canRequestAds`, ou `null` si le formulaire n'a pas pu s'ouvrir —
- * auquel cas l'appelant ne doit rien changer à l'état courant, faute de valeur fiable.
+ * @returns Le nouvel état de consentement réel (voir consentementReelAccorde — pas le simple
+ * canRequestAds de Google), ou `null` si le formulaire n'a pas pu s'ouvrir — auquel cas
+ * l'appelant ne doit rien changer à l'état courant, faute de valeur fiable.
  */
 export async function ouvrirPreferencesPublicitaires(): Promise<boolean | null> {
   try {
     const consentInfo = await AdsConsent.showPrivacyOptionsForm();
-    return consentInfo.canRequestAds;
+    return await consentementReelAccorde(consentInfo.canRequestAds);
   } catch (e) {
     console.warn('Ouverture des préférences publicitaires impossible', e);
     return null;
