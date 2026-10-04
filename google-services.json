@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "197403724516",
-    "project_id": "nat-sheet",
-    "storage_bucket": "nat-sheet.firebasestorage.app"
+    "project_number": "865004895400",
+    "project_id": "civique-fd5c2",
+    "storage_bucket": "civique-fd5c2.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:197403724516:android:baecb9dcabce8566c27af1",
+        "mobilesdk_app_id": "1:865004895400:android:aeca65587e297007f0569d",
         "android_client_info": {
-          "package_name": "com.hasakistudio.reussirmonentretien"
+          "package_name": "com.hasakistudio.examencivique"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDx2wU40nHWbxZArVCz86PW-hAlXZ6BltE"
+          "current_key": "AIzaSyC0b22QpdcvzDGNRvYM8yuwH9BkMM9p8ak"
         }
       ],
       "services": {

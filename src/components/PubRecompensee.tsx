@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRewardedAd } from 'react-native-google-mobile-ads';
-import { ouvrirPreferencesPublicitaires } from '../services/ads';
 import { usePublicites } from '../state/PublicitesContext';
 import { couleurs } from '../theme/colors';
 import { polices } from '../theme/typographie';
@@ -28,7 +27,7 @@ interface Props {
  * publicité ne serait qu'un délai contournable, et ne rapporterait rien.
  *
  * Conséquence assumée : sans réseau, ou si l'utilisateur a refusé la publicité au parcours de
- * consentement, le déblocage est impossible. Les fiches déjà débloquées restent consultables
+ * consentement, le déblocage est impossible. Les questions déjà débloquées restent consultables
  * hors ligne, mais en débloquer de nouvelles suppose une connexion.
  */
 export default function PubRecompensee(props: Props) {
@@ -41,7 +40,7 @@ export default function PubRecompensee(props: Props) {
 }
 
 function ModaleOuverte({ unite, titre, description, onTermine, onAnnuler, onVisionnee }: Props) {
-  const { publicitesAutorisees } = usePublicites();
+  const { publicitesAutorisees, rafraichirPreferencesPublicitaires } = usePublicites();
   const insets = useSafeAreaInsets();
   // adUnitId à null tant que le consentement n'est pas acquis : le hook ne crée alors aucune
   // instance et n'émet aucune requête publicitaire, ce qu'impose le parcours UMP.
@@ -102,7 +101,7 @@ function ModaleOuverte({ unite, titre, description, onTermine, onAnnuler, onVisi
             Le déblocage par publicité nécessite votre accord pour l'affichage de publicités. Vous
             pouvez revenir sur ce choix, ou passer en Premium pour tout débloquer sans publicité.
           </Text>
-          <TouchableOpacity style={styles.btnPub} onPress={() => ouvrirPreferencesPublicitaires()}>
+          <TouchableOpacity style={styles.btnPub} onPress={rafraichirPreferencesPublicitaires}>
             <Text style={styles.btnPubTexte}>Gérer mes préférences</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onAnnuler}>
@@ -192,7 +191,7 @@ const styles = StyleSheet.create({
   spinner: { marginBottom: 14 },
   titre: { fontSize: 19, fontFamily: polices.titre, color: couleurs.bleuNuit, marginBottom: 8 },
   texte: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 20, textAlign: 'center', marginBottom: 20 },
-  btnPub: { backgroundColor: couleurs.or, borderRadius: 10, paddingVertical: 14, width: '100%', alignItems: 'center' },
-  btnPubTexte: { color: '#fff', fontFamily: polices.texteGras, fontSize: 14 },
+  btnPub: { backgroundColor: couleurs.or, borderRadius: 10, paddingVertical: 14, paddingHorizontal: 14, width: '100%', alignItems: 'center' },
+  btnPubTexte: { color: '#fff', fontFamily: polices.texteGras, fontSize: 14, textAlign: 'center' },
   fermer: { marginTop: 12, fontSize: 13, fontFamily: polices.texte, color: couleurs.ardoise, textDecorationLine: 'underline' },
 });

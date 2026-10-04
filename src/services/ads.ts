@@ -7,14 +7,13 @@
 // explications détaillées qui s'y trouvent). Ne pas le retirer tant que RN n'est pas passé
 // à Kotlin ≥ 2.3.
 //
-// ⚠️ app.json déclare le plugin "react-native-google-mobile-ads" avec les App ID de TEST
-// publics de Google (androidAppId ...~3347511713, iosAppId ...~1458002511), en l'absence de
-// compte AdMob pour ce projet. À remplacer par les vrais App ID (console AdMob → Paramètres
-// de l'app) dès sa création, en plus des ID d'unité ci-dessous.
+// ⚠️ app.json porte désormais le vrai App ID Android (compte AdMob créé, app enregistrée en
+// tests fermés). L'iosAppId, lui, reste celui de test : aucun compte AdMob n'existe pour la
+// plateforme iOS tant que l'immatriculation DUNS n'a pas abouti.
 //
 // L'iosAppId n'est pas facultatif : sans lui, le SDK natif fait planter l'app au démarrage
-// sur iOS. Il est renseigné dès maintenant pour que le jour d'un premier build iOS ne
-// commence pas par un crash inexpliqué.
+// sur iOS. Il est renseigné dès maintenant (avec l'ID de test) pour que le jour d'un premier
+// build iOS ne commence pas par un crash inexpliqué — à remplacer par le vrai le moment venu.
 import { Platform } from 'react-native';
 import { requestTrackingPermissionsAsync } from 'expo-tracking-transparency';
 import {
@@ -26,24 +25,40 @@ import {
 } from 'react-native-google-mobile-ads';
 
 // ⚙️ Emplacement du bandeau publicitaire de l'écran Question.
-// Aucun compte AdMob n'existe encore pour ce projet : on utilise l'ID de test fourni par
-// Google, y compris tant qu'aucune unité réelle n'a été créée. Ne jamais coller un vrai ID
-// avant d'avoir un vrai compte AdMob — cliquer sur une vraie pub en environnement de test
-// peut faire bannir le compte AdMob.
-// TODO(monétisation) : remplacer par le vrai ID d'unité une fois créé dans la console AdMob.
-export const UNITE_PUB_BANNIERE = TestIds.ADAPTIVE_BANNER;
+//
+// Unités réelles créées dans la console AdMob, gardées derrière `__DEV__` : Metro et le dev
+// client (donc toute session de développement courante) continuent de recevoir les ID de test
+// de Google, quel que soit l'état du compte AdMob. Seul un build release — `assembleRelease`,
+// `bundleRelease`, ou un build publié — sert les vraies unités. Cliquer sur une vraie pub en
+// environnement de test peut faire bannir le compte AdMob ; ce garde-fou rend l'erreur
+// impossible plutôt que de compter sur la prudence de qui teste.
+export const UNITE_PUB_BANNIERE = __DEV__
+  ? TestIds.ADAPTIVE_BANNER
+  : 'ca-app-pub-2352499055697790/4000356073';
 
 // ⚙️ Emplacements des publicités avec récompense — format distinct du bandeau :
 // l'utilisateur regarde volontairement une annonce en échange d'un contenu.
 //
-// Trois unités séparées plutôt qu'une seule, alors qu'elles pointent aujourd'hui vers le même
-// ID de test. Deux raisons : les rapports AdMob sont ventilés par unité, ce qui montrera lequel
-// des trois déblocages rapporte réellement ; et le format se règle par unité, donc l'un d'eux
-// pourra passer en RewardedInterstitial sans toucher aux autres.
-// TODO(monétisation) : créer trois unités distinctes dans la console AdMob et les reporter ici.
-export const UNITE_PUB_PALIER = TestIds.REWARDED;
-export const UNITE_PUB_SESSION_DETAIL = TestIds.REWARDED;
-export const UNITE_PUB_BONUS = TestIds.REWARDED;
+// Unités séparées plutôt qu'une seule : les rapports AdMob sont ventilés par unité, ce qui
+// montre lequel des déblocages rapporte réellement ; et le format se règle par unité, donc
+// l'un d'eux pourra passer en RewardedInterstitial sans toucher aux autres.
+export const UNITE_PUB_PALIER = __DEV__
+  ? TestIds.REWARDED
+  : 'ca-app-pub-2352499055697790/3357443969';
+export const UNITE_PUB_SESSION_DETAIL = __DEV__
+  ? TestIds.REWARDED
+  : 'ca-app-pub-2352499055697790/4052326961';
+// Examen blanc au-delà du quota du jour : le levier propre à Civique, celui dont on attend le
+// plus. Son unité doit rester distincte pour qu'AdMob dise ce qu'il rapporte réellement.
+export const UNITE_PUB_EXAMEN = __DEV__
+  ? TestIds.REWARDED
+  : 'ca-app-pub-2352499055697790/3829974841';
+// Dévoiler le résultat d'un examen déjà passé — quota d'examens et déblocage du résultat sont
+// deux leviers distincts : le premier limite le nombre d'examens par jour, le second monétise
+// chaque examen déjà passé, y compris ceux du quota gratuit.
+export const UNITE_PUB_RESULTAT_EXAMEN = __DEV__
+  ? TestIds.REWARDED
+  : 'ca-app-pub-2352499055697790/3003978339';
 
 // Format le plus compact du catalogue standard : 320×50 dp, hauteur fixe et prévisible.
 // Choisi pour préserver la place laissée à la question, qui est le contenu de l'écran.
@@ -89,7 +104,7 @@ export async function initialiserPublicites(): Promise<boolean> {
     }
   }
   try {
-    // Plafonne le contenu servi : une app de préparation à un entretien de naturalisation n'a
+    // Plafonne le contenu servi : une app de préparation à un examen civique n'a
     // rien à gagner à afficher des annonces pour adultes. « T » (teen) écarte les catégories
     // les plus crues tout en conservant l'essentiel de l'inventaire — « MA » les autoriserait,
     // « PG » serait plus strict mais réduirait davantage le remplissage.
@@ -107,11 +122,22 @@ export async function initialiserPublicites(): Promise<boolean> {
  * "Gérer mes préférences publicitaires" dans les mentions légales — Google impose qu'un
  * utilisateur puisse revenir sur son choix à tout moment, au même titre que pour le
  * consentement Analytics.
+ *
+ * `showPrivacyOptionsForm` renvoie le statut de consentement à jour une fois le formulaire
+ * fermé — `canRequestAds` y est déjà inclus. Le récupérer ici, plutôt que l'ignorer, est ce
+ * qui permet à l'appelant de répercuter un refus sur l'affichage des publicités : sans ce
+ * retour, `publicitesAutorisees` resterait figé à sa valeur du tout premier lancement, et
+ * revenir sur son choix n'aurait aucun effet visible.
+ *
+ * @returns Le nouveau `canRequestAds`, ou `null` si le formulaire n'a pas pu s'ouvrir —
+ * auquel cas l'appelant ne doit rien changer à l'état courant, faute de valeur fiable.
  */
-export async function ouvrirPreferencesPublicitaires(): Promise<void> {
+export async function ouvrirPreferencesPublicitaires(): Promise<boolean | null> {
   try {
-    await AdsConsent.showPrivacyOptionsForm();
+    const consentInfo = await AdsConsent.showPrivacyOptionsForm();
+    return consentInfo.canRequestAds;
   } catch (e) {
     console.warn('Ouverture des préférences publicitaires impossible', e);
+    return null;
   }
 }

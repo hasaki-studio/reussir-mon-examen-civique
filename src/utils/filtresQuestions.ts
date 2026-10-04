@@ -1,5 +1,15 @@
 // src/utils/filtresQuestions.ts
 import { Question } from '../../services/firebase';
+import type { Quizz } from '../config/quizz';
+
+/**
+ * Restreint le corpus aux questions d'un quizz. Le contenu étant cloisonné — une question
+ * appartient à un seul quizz — ce filtre s'applique en premier, et tous les autres travaillent
+ * sur son résultat.
+ */
+export function questionsDuQuizz(questions: Question[], quizz: Quizz): Question[] {
+  return questions.filter((q) => q.quizz === quizz);
+}
 
 export function questionsDebloquees(
   questions: Question[],

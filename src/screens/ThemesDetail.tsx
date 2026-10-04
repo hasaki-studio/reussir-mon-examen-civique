@@ -5,14 +5,23 @@ import { polices } from '../theme/typographie';
 
 type Mode = 'theme' | 'palier';
 
+export type EntreeTheme = { nom: string; nb: number };
+export type EntreePalier = { numero: number; nb: number };
+
 interface Props {
-  themes: string[];
-  paliers: number[];
+  themes: EntreeTheme[];
+  paliers: EntreePalier[];
   palierUtilisateur: number;
   premium: boolean;
   themeDebloque: boolean;
   onSelectionnerTheme: (theme: string) => void;
   onSelectionnerPalier: (palier: number) => void;
+  /**
+   * Un niveau verrouillé reste tapable : c'est ici, face au cadenas, que l'envie de débloquer
+   * se manifeste, pas seulement sur l'écran d'accueil. Débloque toujours le niveau suivant
+   * (même logique que là-bas) — taper un niveau lointain avance donc d'un cran, pas jusqu'à lui.
+   */
+  onDebloquerPalier: () => void;
   onRetour: () => void;
 }
 
@@ -24,6 +33,7 @@ export default function ThemesDetail({
   themeDebloque,
   onSelectionnerTheme,
   onSelectionnerPalier,
+  onDebloquerPalier,
   onRetour,
 }: Props) {
   const [mode, setMode] = useState<Mode>(themeDebloque ? 'theme' : 'palier');
@@ -36,7 +46,7 @@ export default function ThemesDetail({
         onPress={onRetour}
         hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
       >
-        <Text style={styles.retour}>← Accueil</Text>
+        <Text style={styles.retour}>← Retour</Text>
       </TouchableOpacity>
       <Text style={styles.titre}>Réviser en détail</Text>
 
@@ -70,29 +80,42 @@ export default function ThemesDetail({
         <View style={styles.liste}>
           {themes.map((theme) => (
             <TouchableOpacity
-              key={theme}
+              key={theme.nom}
               style={styles.carte}
-              onPress={() => onSelectionnerTheme(theme)}
+              onPress={() => onSelectionnerTheme(theme.nom)}
             >
-              <Text style={styles.carteTexte}>{theme}</Text>
+              <View style={styles.carteTexteZone}>
+                <Text style={styles.carteTexte}>{theme.nom}</Text>
+                <Text style={styles.carteCompteur}>
+                  {theme.nb} question{theme.nb > 1 ? 's' : ''}
+                </Text>
+              </View>
+              <Text style={styles.fleche}>→</Text>
             </TouchableOpacity>
           ))}
         </View>
       ) : (
         <View style={styles.liste}>
           {paliers.map((palier) => {
-            const verrouille = !premium && palier > palierUtilisateur;
+            const verrouille = !premium && palier.numero > palierUtilisateur;
             return (
               <TouchableOpacity
-                key={palier}
+                key={palier.numero}
                 style={[styles.carte, verrouille && styles.carteVerrouillee]}
-                onPress={() => !verrouille && onSelectionnerPalier(palier)}
-                disabled={verrouille}
+                onPress={() =>
+                  verrouille ? onDebloquerPalier() : onSelectionnerPalier(palier.numero)
+                }
               >
-                <Text style={[styles.carteTexte, verrouille && styles.carteTexteVerrouille]}>
-                  Niveau {palier}
-                </Text>
-                {verrouille && <Text style={styles.cadenas}>🔒</Text>}
+                <View style={styles.carteTexteZone}>
+                  <Text style={[styles.carteTexte, verrouille && styles.carteTexteVerrouille]}>
+                    Niveau {palier.numero}
+                  </Text>
+                  <Text style={styles.carteCompteur}>
+                    {palier.nb} question{palier.nb > 1 ? 's' : ''}
+                    {verrouille ? ' · publicité pour débloquer' : ''}
+                  </Text>
+                </View>
+                <Text style={styles.fleche}>{verrouille ? '🔒' : '→'}</Text>
               </TouchableOpacity>
             );
           })}
@@ -129,9 +152,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
   },
+  carteTexteZone: { flex: 1 },
   carteVerrouillee: { backgroundColor: couleurs.blancCasse },
   carteTexte: { fontSize: 15, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
   carteTexteVerrouille: { color: couleurs.ardoise },
-  cadenas: { fontSize: 14 },
+  carteCompteur: { fontSize: 12, fontFamily: polices.texte, color: couleurs.ardoise, marginTop: 3 },
+  fleche: { fontSize: 14, fontFamily: polices.texte, color: couleurs.ardoise },
 });

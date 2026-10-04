@@ -1,26 +1,58 @@
-import { useMemo, useState } from 'react';
-import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Redirect, useRouter } from 'expo-router';
 import { useEtat } from '../src/state/EtatContext';
-import { useQuestionsContext } from '../src/state/QuestionsContext';
-import { useQuiz, melanger } from '../src/state/QuizContext';
 import { useRemoteConfig } from '../src/state/RemoteConfigContext';
 import { useConsentement } from '../src/state/ConsentementContext';
-import { useAchatPremium } from '../src/state/AchatPremiumContext';
-import { logRevisionAleatoireDemarree, logPubPalierVisionnee } from '../src/services/analytics';
-import Accueil from '../src/screens/Accueil';
+import { QUIZZ, QUIZZ_ORDRE, type Quizz } from '../src/config/quizz';
 import { messageDateCle } from '../src/config/datesCles';
-import PubRecompensee from '../src/components/PubRecompensee';
-import { UNITE_PUB_PALIER } from '../src/services/ads';
+import { definirQuizzAnalytics } from '../src/services/analytics';
+import SelectionQuizz, { LigneQuizz } from '../src/screens/SelectionQuizz';
 
-export default function AccueilRoute() {
+/**
+ * Passe à vrai après la redirection automatique du lancement.
+ *
+ * Un module n'est évalué qu'une fois par démarrage de l'application : c'est exactement la
+ * portée voulue. Sans ce garde-fou, revenir volontairement au menu depuis un quizz relancerait
+ * la redirection vers ce même quizz, et le choix deviendrait impossible à changer.
+ *
+ * Il double `oublierDernierQuizz()`, appelé au retour au menu : celui-ci donne la bonne
+ * sémantique (repartir de l'application depuis le menu si on l'a quittée là), mais reste une
+ * mise à jour d'état, donc sujette à l'ordre dans lequel React la traite par rapport à la
+ * navigation. Le drapeau, lui, est immédiat.
+ */
+let redirectionInitialeFaite = false;
+
+// Constante, et non plus recalculée : depuis que les cartes ne portent ni progression ni
+// niveau, elles ne dépendent que de la configuration des quizz. Rien à mémoïser, rien à
+// attendre du corpus.
+const LIGNES: LigneQuizz[] = QUIZZ_ORDRE.map((cle) => ({
+  cle,
+  nom: QUIZZ[cle].nom,
+  sousTitre: QUIZZ[cle].sousTitre,
+  couleur: QUIZZ[cle].couleur,
+}));
+
+export default function SelectionRoute() {
   const router = useRouter();
-  const [pubPalierEnAttente, setPubPalierEnAttente] = useState(false);
-  const { etat, debloquerPalierSuivant, reinitialiser } = useEtat();
-  const { questions, palierMax } = useQuestionsContext();
-  const { demarrerSession } = useQuiz();
-  const { seuilDeblocageTheme, messageAccueil } = useRemoteConfig();
+  const { etat, reinitialiser } = useEtat();
+  const { messageAccueil } = useRemoteConfig();
   const { reinitialiserConsentement } = useConsentement();
-  const { prixPremium, achatEnCours, erreurAchat, lancerAchatPremium } = useAchatPremium();
+
+  // Décidé une fois au montage, pas à chaque rendu : la valeur ne doit pas changer sous l'effet
+  // d'un re-rendu déclenché par autre chose (arrivée des questions, message distant).
+  const [redirigerVers] = useState<Quizz | null>(() =>
+    redirectionInitialeFaite ? null : etat.dernierQuizz
+  );
+
+  useEffect(() => {
+    redirectionInitialeFaite = true;
+  }, []);
+
+  // Hors d'un quizz : les événements de cet écran ne doivent pas rester attribués au dernier
+  // quizz consulté, ce qui gonflerait ses chiffres d'un trafic qui ne le concerne pas.
+  useEffect(() => {
+    definirQuizzAnalytics(null);
+  }, []);
 
   // Bouton "Réinitialiser (test)" en dev : remet à zéro progression + consentement
   // (réaffiche l'écran de consentement), sans toucher au jeton App Check.
@@ -29,69 +61,24 @@ export default function AccueilRoute() {
     reinitialiserConsentement();
   };
 
-  const seuilTheme = Math.min(seuilDeblocageTheme, palierMax);
-
-  const themeDebloque = useMemo(() => {
-    if (etat.premium) return true;
-    return etat.palier >= seuilTheme;
-  }, [etat.premium, etat.palier, seuilTheme]);
-
-  const fichesDebloquees = useMemo(() => {
-    return etat.premium ? questions.length : questions.filter((q) => q.palier <= etat.palier).length;
-  }, [questions, etat.premium, etat.palier]);
-
   // Priorité : un message posé à distance l'emporte sur la date du jour, qui l'emporte
-  // elle-même sur le message par défaut (résolu dans Accueil). Cet ordre laisse la main :
+  // elle-même sur le message par défaut (résolu dans l'écran). Cet ordre laisse la main :
   // une annonce ponctuelle ne doit pas être masquée parce que c'est le 14 juillet.
   const messageBandeau = messageAccueil || messageDateCle() || '';
 
-  const onCommencer = () => {
-    const base = etat.premium ? questions : questions.filter((q) => q.palier <= etat.palier);
-    const liste = melanger(base).slice(0, 15);
-    if (liste.length === 0) return;
-    logRevisionAleatoireDemarree({ nbFichesDispo: base.length });
-    demarrerSession('aleatoire', undefined, liste, false, liste);
-    router.push('/quiz');
-  };
+  // Après tous les hooks, dont l'ordre doit rester stable d'un rendu à l'autre.
+  // `replace` et non `push` : le menu ne reste pas dans la pile, sinon le bouton retour
+  // d'Android y ramènerait à chaque fois au lieu de quitter l'application.
+  if (redirigerVers) {
+    return <Redirect href={{ pathname: '/[quizz]', params: { quizz: redirigerVers } }} />;
+  }
 
   return (
-    <>
-      <Accueil
-        fichesDebloquees={fichesDebloquees}
-        fichesTotal={questions.length}
-        palier={etat.palier}
-        palierMax={palierMax}
-        seuilTheme={seuilTheme}
-        themeDebloque={themeDebloque}
-        premium={etat.premium}
-        prixPremium={prixPremium}
-        achatEnCours={achatEnCours}
-        erreurAchat={erreurAchat}
-        messageAccueil={messageBandeau}
-        onCommencer={onCommencer}
-        onReviserDetail={() => router.push('/themes')}
-        onDebloquer={() => setPubPalierEnAttente(true)}
-        onPremium={lancerAchatPremium}
-        onConseils={() => router.push('/conseils')}
-        onMentionsLegales={() => router.push('/mentions')}
-        onReinitialiser={reinitialiserTout}
-      />
-      <PubRecompensee
-        unite={UNITE_PUB_PALIER}
-        visible={pubPalierEnAttente}
-        titre="Débloquer la suite"
-        description="Regardez une publicité pour débloquer le niveau suivant et de nouvelles fiches à réviser."
-        onVisionnee={() => {
-          if (etat.palier < palierMax) {
-            logPubPalierVisionnee({ palierAvant: etat.palier, palierApres: etat.palier + 1 });
-          }
-        }}
-        onTermine={() => {
-          debloquerPalierSuivant(palierMax, seuilDeblocageTheme);
-          setPubPalierEnAttente(false);
-        }}
-        onAnnuler={() => setPubPalierEnAttente(false)}
-      />
-    </>
+    <SelectionQuizz
+      lignes={LIGNES}
+      messageAccueil={messageBandeau}
+      onChoisirQuizz={(quizz: Quizz) => router.push({ pathname: '/[quizz]', params: { quizz } })}
+      onReinitialiser={reinitialiserTout}
+    />
   );
 }

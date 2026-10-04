@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Naturalisation",
-    "slug": "hasaki-studio",
+    "name": "Examen civique",
+    "slug": "reussir-mon-examen-civique",
     "version": "1.0.0",
-    "scheme": "reussirmonentretien",
+    "scheme": "examencivique",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hasakistudio.reussirmonentretien",
+      "bundleIdentifier": "com.hasakistudio.examencivique",
       "buildNumber": "6",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
@@ -17,7 +17,7 @@
       }
     },
     "android": {
-      "package": "com.hasakistudio.reussirmonentretien",
+      "package": "com.hasakistudio.examencivique",
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
@@ -56,7 +56,7 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "androidAppId": "ca-app-pub-2352499055697790~3175368721",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511",
           "userTrackingUsageDescription": "Votre autorisation permet d'afficher des publicités adaptées, qui financent l'accès gratuit aux fiches de révision.",
           "skAdNetworkItems": [
@@ -65,11 +65,12 @@
         }
       ]
     ],
+    "owner": "hasakistudio",
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "153e81c9-7bb9-47c5-8e27-05f8b0b41045"
+        "projectId": "3b1e09d7-3f64-480e-8358-ee5373fd8165"
       }
-    },
-    "owner": "hasakistudio"
+    }
   }
 }

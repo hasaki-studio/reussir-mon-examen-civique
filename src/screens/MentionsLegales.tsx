@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { couleurs } from '../theme/colors';
 import { polices } from '../theme/typographie';
 import type { Consentement } from '../state/ConsentementContext';
-import { ouvrirPreferencesPublicitaires } from '../services/ads';
+import { usePublicites } from '../state/PublicitesContext';
 import { URL_CONFIDENTIALITE, URL_MENTIONS_LEGALES, ouvrirLien } from '../config/liens';
 
 interface Props {
@@ -22,6 +22,7 @@ export default function MentionsLegales({
   restaurationEnCours,
   onRestaurerAchats,
 }: Props) {
+  const { rafraichirPreferencesPublicitaires } = usePublicites();
   const analyticsActif = consentement === 'accepte';
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contenu}>
@@ -37,11 +38,13 @@ export default function MentionsLegales({
 
       <Text style={styles.sectionTitre}>Éditeur</Text>
       <Text style={styles.paragrapheSerre}>
-        <Text style={styles.gras}>Achraf AZOUZI</Text> — personne physique. « Hasaki Studio » est un nom d'usage, non une société immatriculée.
+        <Text style={styles.gras}>Hasaki Studio</Text> — Achraf AZOUZI, entrepreneur individuel
+        (EI), régime micro-entreprise.
       </Text>
 
       <View style={styles.coordonnees}>
-        <Text style={styles.coordonneeLigne}>Domicile : 3 avenue de Choisy, Tour Bergame, BP 2122, 75013 Paris</Text>
+        <Text style={styles.coordonneeLigne}>SIREN : 130 296 460</Text>
+        <Text style={styles.coordonneeLigne}>Siège : 47 rue Crozatier, BP AZOUZI, 75012 Paris</Text>
         <Text style={styles.coordonneeLigne}>Téléphone : 06 13 66 73 89</Text>
         <Text style={styles.coordonneeLigne}>Contact : contact@hasakistudio.fr</Text>
       </View>
@@ -59,9 +62,15 @@ export default function MentionsLegales({
         Certains traitements techniques et publicitaires sont mis en œuvre, dont plusieurs sont soumis à votre consentement préalable et révocable. Le détail figure dans la politique de confidentialité, qui précise les données traitées, leurs finalités, leurs bases légales, leurs durées de conservation et vos droits.
       </Text>
 
+      <Text style={styles.sectionTitre}>Vos droits</Text>
+      <Text style={styles.paragraphe}>
+        Vous disposez d'un droit d'accès, de rectification et d'effacement des données vous concernant, ainsi que du droit de retirer votre consentement à tout moment. Votre progression, stockée uniquement sur votre appareil, s'efface en désinstallant l'application ou en vidant ses données depuis les réglages de votre téléphone. Pour toute autre demande — notamment l'effacement des données déjà transmises aux régies publicitaires ou à la mesure d'usage — écrivez à{' '}
+        <Text style={styles.gras}>contact@hasakistudio.fr</Text>. Nous y répondons dans un délai d'un mois.
+      </Text>
+
       <Text style={styles.sectionTitre}>Mesure d'usage (Analytics)</Text>
       <Text style={styles.paragraphe}>
-        Avec votre consentement, des données d'usage anonymes et agrégées sont collectées à des fins statistiques (ex. : nombre de fiches consultées, écrans visités) via Firebase Analytics, sans partage avec des régies publicitaires tierces à des fins de ciblage. Ce recueil est soumis à votre consentement, que vous pouvez donner ou retirer à tout moment ci-dessous.
+        Avec votre consentement, des données d'usage anonymes et agrégées sont collectées à des fins statistiques (ex. : nombre de questions consultées, écrans visités) via Firebase Analytics, sans partage avec des régies publicitaires tierces à des fins de ciblage. Ce recueil est soumis à votre consentement, que vous pouvez donner ou retirer à tout moment ci-dessous.
       </Text>
 
       <View style={styles.consentEncart}>
@@ -81,14 +90,12 @@ export default function MentionsLegales({
 
       <Text style={styles.sectionTitre}>Publicité</Text>
       <Text style={styles.paragraphe}>
-        L'application peut afficher des publicités fournies par des régies publicitaires tierces (notamment Google AdMob), permettant de débloquer gratuitement certains contenus (fiches, thèmes, réponses bonus) en échange du visionnage d'une annonce. Ces régies peuvent déposer des traceurs sur votre appareil et traiter certaines données (identifiant publicitaire, données techniques de l'appareil) à des fins de diffusion et de mesure de performance des publicités, et le cas échéant de personnalisation. Ces traitements sont soumis à votre consentement, recueilli lors de votre première utilisation de l'application via le formulaire de Google, et vous pouvez revenir sur ce choix à tout moment ci-dessous. L'éditeur de l'application ne vend ni ne transmet aucune donnée personnelle à des fins commerciales en dehors du fonctionnement de ces régies publicitaires.
+        L'application peut afficher des publicités fournies par des régies publicitaires tierces (notamment Google AdMob), permettant de débloquer gratuitement du contenu (nouvelles questions, examens blancs supplémentaires, revue détaillée des résultats) en échange du visionnage d'une annonce. Ces régies peuvent déposer des traceurs sur votre appareil et traiter certaines données (identifiant publicitaire, données techniques de l'appareil) à des fins de diffusion et de mesure de performance des publicités, et le cas échéant de personnalisation. Ces traitements sont soumis à votre consentement, recueilli lors de votre première utilisation de l'application via le formulaire de Google, et vous pouvez revenir sur ce choix à tout moment ci-dessous. L'éditeur de l'application ne vend ni ne transmet aucune donnée personnelle à des fins commerciales en dehors du fonctionnement de ces régies publicitaires.
       </Text>
 
       <TouchableOpacity
         style={[styles.consentBouton, styles.consentBoutonEspace]}
-        onPress={() => {
-          ouvrirPreferencesPublicitaires();
-        }}
+        onPress={rafraichirPreferencesPublicitaires}
         activeOpacity={0.85}
       >
         <Text style={styles.consentBoutonTexte}>Gérer mes préférences publicitaires</Text>
@@ -126,7 +133,7 @@ export default function MentionsLegales({
       </Text>
 
       <Text style={styles.paragraphe}>
-        Les contenus issus de sources publiques officielles, notamment le Livret du citoyen, demeurent la propriété de leurs auteurs respectifs et sont reformulés à des fins pédagogiques.
+        Les questions s'appuient sur les sujets fixés par les listes officielles de l'examen civique (carte de séjour pluriannuelle, carte de résident, naturalisation) et sont rédigées spécifiquement pour l'application, à des fins pédagogiques.
       </Text>
 
       <Text style={styles.sectionTitre}>Politique de confidentialité</Text>
@@ -176,8 +183,8 @@ const styles = StyleSheet.create({
   coordonneeLigne: { fontSize: 13.5, fontFamily: polices.texte, color: couleurs.ardoise, lineHeight: 20, marginBottom: 3 },
   consentEncart: { backgroundColor: 'rgba(28,43,73,0.04)', borderRadius: 10, padding: 16, marginBottom: 20 },
   consentStatut: { fontSize: 13.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, marginBottom: 12 },
-  consentBouton: { borderWidth: 1.5, borderColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  consentBouton: { borderWidth: 1.5, borderColor: couleurs.bleuNuit, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 14, alignItems: 'center' },
   consentBoutonEspace: { marginBottom: 20 },
-  consentBoutonTexte: { fontSize: 13.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit },
+  consentBoutonTexte: { fontSize: 13.5, fontFamily: polices.texteSemiGras, color: couleurs.bleuNuit, textAlign: 'center' },
   lienTexte: { fontSize: 12.5, fontFamily: polices.texte, color: couleurs.bleuNuit, textDecorationLine: 'underline', marginBottom: 20 },
 });

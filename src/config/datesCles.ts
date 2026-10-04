@@ -9,7 +9,7 @@
 //
 // Clés au format MM-JJ. Seules les dates fixes figurent ici : les fêtes mobiles (Pâques,
 // Ascension, Pentecôte) supposeraient un calcul calendaire pour un intérêt pédagogique faible
-// dans le cadre de l'entretien d'assimilation.
+// dans le cadre de l'examen civique.
 //
 // ⚠️ Le bandeau est une ligne courte en petits caractères. Au-delà d'une soixantaine de
 // caractères, le texte passe à la ligne et déséquilibre le bas de l'écran.

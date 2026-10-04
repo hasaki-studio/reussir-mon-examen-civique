@@ -16,7 +16,6 @@ const couleursTheme: Record<string, string> = {
   'Droits et devoirs des citoyens': '#3E6B4F',
   'Histoire, géographie et culture': '#A62B2B',
   'Vivre dans la société française': '#5B4B8A',
-  'Livret du citoyen 2026': '#2E7D8C',
 };
 
 export function couleurTheme(theme: string): string {
