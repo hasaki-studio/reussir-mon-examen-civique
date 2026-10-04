@@ -122,11 +122,22 @@ export async function initialiserPublicites(): Promise<boolean> {
  * "Gérer mes préférences publicitaires" dans les mentions légales — Google impose qu'un
  * utilisateur puisse revenir sur son choix à tout moment, au même titre que pour le
  * consentement Analytics.
+ *
+ * `showPrivacyOptionsForm` renvoie le statut de consentement à jour une fois le formulaire
+ * fermé — `canRequestAds` y est déjà inclus. Le récupérer ici, plutôt que l'ignorer, est ce
+ * qui permet à l'appelant de répercuter un refus sur l'affichage des publicités : sans ce
+ * retour, `publicitesAutorisees` resterait figé à sa valeur du tout premier lancement, et
+ * revenir sur son choix n'aurait aucun effet visible.
+ *
+ * @returns Le nouveau `canRequestAds`, ou `null` si le formulaire n'a pas pu s'ouvrir —
+ * auquel cas l'appelant ne doit rien changer à l'état courant, faute de valeur fiable.
  */
-export async function ouvrirPreferencesPublicitaires(): Promise<void> {
+export async function ouvrirPreferencesPublicitaires(): Promise<boolean | null> {
   try {
-    await AdsConsent.showPrivacyOptionsForm();
+    const consentInfo = await AdsConsent.showPrivacyOptionsForm();
+    return consentInfo.canRequestAds;
   } catch (e) {
     console.warn('Ouverture des préférences publicitaires impossible', e);
+    return null;
   }
 }

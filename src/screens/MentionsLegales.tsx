@@ -2,7 +2,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { couleurs } from '../theme/colors';
 import { polices } from '../theme/typographie';
 import type { Consentement } from '../state/ConsentementContext';
-import { ouvrirPreferencesPublicitaires } from '../services/ads';
+import { usePublicites } from '../state/PublicitesContext';
 import { URL_CONFIDENTIALITE, URL_MENTIONS_LEGALES, ouvrirLien } from '../config/liens';
 
 interface Props {
@@ -22,6 +22,7 @@ export default function MentionsLegales({
   restaurationEnCours,
   onRestaurerAchats,
 }: Props) {
+  const { rafraichirPreferencesPublicitaires } = usePublicites();
   const analyticsActif = consentement === 'accepte';
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contenu}>
@@ -94,9 +95,7 @@ export default function MentionsLegales({
 
       <TouchableOpacity
         style={[styles.consentBouton, styles.consentBoutonEspace]}
-        onPress={() => {
-          ouvrirPreferencesPublicitaires();
-        }}
+        onPress={rafraichirPreferencesPublicitaires}
         activeOpacity={0.85}
       >
         <Text style={styles.consentBoutonTexte}>Gérer mes préférences publicitaires</Text>

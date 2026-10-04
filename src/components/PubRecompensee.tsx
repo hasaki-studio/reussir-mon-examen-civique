@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Modal, View, Text, TouchableOpacity, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRewardedAd } from 'react-native-google-mobile-ads';
-import { ouvrirPreferencesPublicitaires } from '../services/ads';
 import { usePublicites } from '../state/PublicitesContext';
 import { couleurs } from '../theme/colors';
 import { polices } from '../theme/typographie';
@@ -41,7 +40,7 @@ export default function PubRecompensee(props: Props) {
 }
 
 function ModaleOuverte({ unite, titre, description, onTermine, onAnnuler, onVisionnee }: Props) {
-  const { publicitesAutorisees } = usePublicites();
+  const { publicitesAutorisees, rafraichirPreferencesPublicitaires } = usePublicites();
   const insets = useSafeAreaInsets();
   // adUnitId à null tant que le consentement n'est pas acquis : le hook ne crée alors aucune
   // instance et n'émet aucune requête publicitaire, ce qu'impose le parcours UMP.
@@ -102,7 +101,7 @@ function ModaleOuverte({ unite, titre, description, onTermine, onAnnuler, onVisi
             Le déblocage par publicité nécessite votre accord pour l'affichage de publicités. Vous
             pouvez revenir sur ce choix, ou passer en Premium pour tout débloquer sans publicité.
           </Text>
-          <TouchableOpacity style={styles.btnPub} onPress={() => ouvrirPreferencesPublicitaires()}>
+          <TouchableOpacity style={styles.btnPub} onPress={rafraichirPreferencesPublicitaires}>
             <Text style={styles.btnPubTexte}>Gérer mes préférences</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onAnnuler}>
