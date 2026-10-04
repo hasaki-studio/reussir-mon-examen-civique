@@ -70,6 +70,53 @@ export const UNITE_PUB_RESULTAT_EXAMEN = __DEV__
 export const TAILLE_BANNIERE = BannerAdSize.BANNER;
 
 /**
+ * Évalue si l'utilisateur a réellement accepté de voir des publicités, en combinant deux
+ * sources renvoyées par le SDK UMP :
+ *
+ *   1. `canRequestAds` — réponse de Google à la question « le SDK est-il autorisé à émettre
+ *      une requête d'annonce ? ». Reste à `true` après un refus explicite en zone régulée,
+ *      parce qu'une annonce *non personnalisée* (contextuelle) reste permise par le cadre
+ *      IAB TCF sans consentement : Google y voit un oui, l'utilisateur un non. S'en tenir à
+ *      cette seule valeur, c'est garantir qu'un bouton « Refuser » n'arrête aucune pub.
+ *
+ *   2. En zone régulée (RGPD / UK), Purpose 1 du TCF — `storeAndAccessInformationOnDevice`.
+ *      C'est le socle commun à toute diffusion publicitaire : son refus signale sans
+ *      ambiguïté que l'utilisateur ne veut rien voir, personnalisé ou pas. Hors zone régulée,
+ *      le TCF ne s'applique pas et `getUserChoices()` renvoie des valeurs non significatives
+ *      — on retombe alors sur `canRequestAds` seul.
+ *
+ * Toute erreur de lecture est traitée comme un refus : par défaut, pas de pub.
+ */
+async function evaluerConsentementPublicitaire(): Promise<boolean> {
+  let canRequestAds: boolean;
+  try {
+    ({ canRequestAds } = await AdsConsent.getConsentInfo());
+  } catch (e) {
+    console.warn('Lecture du consentement publicitaire impossible', e);
+    return false;
+  }
+  if (!canRequestAds) return false;
+
+  let gdprApplies: boolean;
+  try {
+    gdprApplies = await AdsConsent.getGdprApplies();
+  } catch (e) {
+    console.warn('Lecture de l\'applicabilité RGPD impossible', e);
+    return false;
+  }
+  // Hors zone régulée, canRequestAds est fiable : pas de TCF, pas de « refus explicite ».
+  if (!gdprApplies) return true;
+
+  try {
+    const choices = await AdsConsent.getUserChoices();
+    return choices.storeAndAccessInformationOnDevice;
+  } catch (e) {
+    console.warn('Lecture du Purpose 1 TCF impossible', e);
+    return false;
+  }
+}
+
+/**
  * Parcours de consentement publicitaire imposé par Google (UMP / IAB TCF), distinct du
  * consentement Analytics (ConsentementContext) : il couvre l'ensemble des vendeurs
  * publicitaires de la chaîne AdMob, pas seulement Firebase. Doit être exécuté avant toute
@@ -82,12 +129,12 @@ export const TAILLE_BANNIERE = BannerAdSize.BANNER;
  */
 export async function initialiserPublicites(): Promise<boolean> {
   try {
-    const consentInfo = await AdsConsent.gatherConsent();
-    if (!consentInfo.canRequestAds) return false;
+    await AdsConsent.gatherConsent();
   } catch (e) {
     console.warn('Parcours de consentement publicitaire impossible', e);
     return false;
   }
+  if (!(await evaluerConsentementPublicitaire())) return false;
 
   // Apple exige sa propre autorisation avant tout accès à l'identifiant publicitaire (IDFA),
   // en plus du formulaire UMP de Google : deux régimes distincts, pas un doublon. Demandée
@@ -123,21 +170,22 @@ export async function initialiserPublicites(): Promise<boolean> {
  * utilisateur puisse revenir sur son choix à tout moment, au même titre que pour le
  * consentement Analytics.
  *
- * `showPrivacyOptionsForm` renvoie le statut de consentement à jour une fois le formulaire
- * fermé — `canRequestAds` y est déjà inclus. Le récupérer ici, plutôt que l'ignorer, est ce
- * qui permet à l'appelant de répercuter un refus sur l'affichage des publicités : sans ce
- * retour, `publicitesAutorisees` resterait figé à sa valeur du tout premier lancement, et
- * revenir sur son choix n'aurait aucun effet visible.
+ * Attention : `showPrivacyOptionsForm` renvoie bien un `AdsConsentInfo` à jour une fois le
+ * formulaire fermé, mais son `canRequestAds` ne reflète PAS un refus explicite — il reste à
+ * `true` tant que des annonces non personnalisées sont diffusables, ce qu'autorise le cadre
+ * IAB TCF sans aucun consentement. On relit donc Purpose 1 via
+ * `evaluerConsentementPublicitaire()` : seul ce détour garantit qu'un refus propre arrête
+ * réellement l'affichage.
  *
- * @returns Le nouveau `canRequestAds`, ou `null` si le formulaire n'a pas pu s'ouvrir —
+ * @returns Le nouvel état de consentement, ou `null` si le formulaire n'a pas pu s'ouvrir —
  * auquel cas l'appelant ne doit rien changer à l'état courant, faute de valeur fiable.
  */
 export async function ouvrirPreferencesPublicitaires(): Promise<boolean | null> {
   try {
-    const consentInfo = await AdsConsent.showPrivacyOptionsForm();
-    return consentInfo.canRequestAds;
+    await AdsConsent.showPrivacyOptionsForm();
   } catch (e) {
     console.warn('Ouverture des préférences publicitaires impossible', e);
     return null;
   }
+  return evaluerConsentementPublicitaire();
 }
